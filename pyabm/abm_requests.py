@@ -83,18 +83,34 @@ def list_mdm_servers(access_token) -> MdmServersResponse:
     else:
         response.raise_for_status()
 
-def list_devices_in_mdm_server(server_id: str, access_token) -> MdmServerDevicesLinkagesResponse:
+def list_devices_in_mdm_server(server_id: str, access_token, next=None) -> MdmServerDevicesLinkagesResponse:
     """
     List devices in a specific MDM server.
     
     :param server_id: The ID of the MDM server.
     :param access_token: The access token for authentication.
+    :param next: Optional; the URL for the next page of results.
     :return: An MdmServerResponse object containing the MDM server information.
     """
-    url = f'https://api-business.apple.com/v1/mdmServers/{server_id}/relationships/devices'    
-    response = session.get(url, headers=_auth_headers(access_token))
-    
-    if response.status_code == 200:
-        return MdmServerDevicesLinkagesResponse.model_validate(response.json())
+    import time
+    if next:
+        url = next
     else:
-        response.raise_for_status()
+        url = f'https://api-business.apple.com/v1/mdmServers/{server_id}/relationships/devices'
+
+    retries = 3
+    for attempt in range(retries):
+        response = session.get(url, headers=_auth_headers(access_token))
+
+        if response.status_code == 200:
+            return MdmServerDevicesLinkagesResponse.model_validate(response.json())
+        
+        if response.status_code == 429:
+            if attempt < retries - 1:
+                time.sleep(5)
+                continue
+            else:
+                response.raise_for_status()
+
+        else:
+            response.raise_for_status()
