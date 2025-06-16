@@ -1,6 +1,17 @@
 import requests
 from pyabm.models import OrgDeviceResponse, MdmServersResponse, MdmServerDevicesLinkagesResponse, OrgDevicesResponse
 
+# creating a session to reuse connections
+# didn't really improved performance, should revert back 
+# to requests without session?
+session = requests.Session()
+
+def _auth_headers(access_token: str) -> dict:
+    """
+    :param access_token: The access token for authentication.
+    :return: A dictionary containing the authorization headers.
+    """
+    return {"Authorization": f"Bearer {access_token}"}
 
 def get_access_token(data: dict) -> dict:
     """
@@ -13,7 +24,7 @@ def get_access_token(data: dict) -> dict:
         'Host': 'account.apple.com'
     }
 
-    response = requests.post(
+    response = session.post(
         'https://account.apple.com/auth/oauth2/token',
         headers=headers,
         data=data
@@ -33,8 +44,7 @@ def list_devices(access_token, next=None) -> OrgDevicesResponse:
         url = next
     else:
         url = 'https://api-business.apple.com/v1/orgDevices'
-    headers = {"Authorization": f"Bearer {access_token}"}   
-    response = requests.get(url, headers=headers)
+    response = session.get(url, headers=_auth_headers(access_token))
 
     if response.status_code == 200:
         return OrgDevicesResponse.model_validate(response.json())
@@ -51,9 +61,7 @@ def get_device(device_id, access_token) -> OrgDeviceResponse:
     """
 
     url = f'https://api-business.apple.com/v1/orgDevices/{device_id}'
-    headers = {"Authorization": f"Bearer {access_token}"}
-    
-    response = requests.get(url, headers=headers)
+    response = session.get(url, headers=_auth_headers(access_token))
     
     if response.status_code == 200:
         return OrgDeviceResponse.model_validate(response.json())
@@ -67,10 +75,8 @@ def list_mdm_servers(access_token) -> MdmServersResponse:
     :param access_token: The access token for authentication.
     :return: An MdmServersResponse object containing the list of MDM servers.
     """
-    url = 'https://api-business.apple.com/v1/mdmServers'
-    headers = {"Authorization": f"Bearer {access_token}"}
-    
-    response = requests.get(url, headers=headers)
+    url = 'https://api-business.apple.com/v1/mdmServers'    
+    response = session.get(url, headers=_auth_headers(access_token))
     
     if response.status_code == 200:
         return MdmServersResponse.model_validate(response.json())
@@ -85,10 +91,8 @@ def list_devices_in_mdm_server(server_id: str, access_token) -> MdmServerDevices
     :param access_token: The access token for authentication.
     :return: An MdmServerResponse object containing the MDM server information.
     """
-    url = f'https://api-business.apple.com/v1/mdmServers/{server_id}/relationships/devices'
-    headers = {"Authorization": f"Bearer {access_token}"}
-    
-    response = requests.get(url, headers=headers)
+    url = f'https://api-business.apple.com/v1/mdmServers/{server_id}/relationships/devices'    
+    response = session.get(url, headers=_auth_headers(access_token))
     
     if response.status_code == 200:
         return MdmServerDevicesLinkagesResponse.model_validate(response.json())
