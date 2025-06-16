@@ -1,0 +1,21 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pyabm"
+version = "2025.06.15"
+description = "Query Apple Business Manager using Python"
+requires-python = ">=3.9"
+dependencies = [
+  "pydantic",
+  "requests",
+  "Authlib",
+  "pycryptodomex",
+]
+readme = "README.md"
+license = "GPL-3.0-or-later"
+keywords = ["abm", "apple business manager"]
+
+[project.scripts]
+pyabm-cli = "pyabm:cli:main"

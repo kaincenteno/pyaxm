@@ -1,5 +1,5 @@
 import requests
-from models import OrgDeviceResponse, MdmServersResponse, MdmServerDevicesLinkagesResponse, OrgDevicesResponse
+from pyabm.models import OrgDeviceResponse, MdmServersResponse, MdmServerDevicesLinkagesResponse, OrgDevicesResponse
 
 
 def get_access_token(data: dict) -> dict:

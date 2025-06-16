@@ -1,7 +1,7 @@
 
 import datetime as dt
-from models import OrgDevice
-import abm_requests as abm_requests
+from pyabm.models import OrgDevice
+from pyabm import abm_requests
 import datetime as dt
 import Cryptodome.PublicKey.ECC as ECC
 from authlib.jose import jwt
