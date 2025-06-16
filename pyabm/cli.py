@@ -4,7 +4,7 @@ import sys
 def query_device():
     client = Client()
     if len(sys.argv) < 3:
-        print("Usage: python cli.py device <device_id>")
+        print("Usage: pyabm-cli device <device_id>")
         exit(1)
     device_id = sys.argv[2]
     device = client.get_device(device_id)
@@ -18,7 +18,7 @@ def list_mdm_servers():
 
 def list_devices_in_mdm_server():
     if len(sys.argv) < 3:
-        print("Usage: python cli.py mdm_server <server_id>")
+        print("Usage: pyabm-cli mdm_server <server_id>")
         print("You can get the server_id from the 'mdm_servers' command.")
         exit(1)
     server_id = sys.argv[2]
@@ -29,7 +29,7 @@ def list_devices_in_mdm_server():
 
 def main():
     if not len(sys.argv) > 1:
-        print("Usage: python cli.py <command> [<args>]")
+        print("Usage: pyabm-cli <command> [<args>]")
         print("Available commands: device mdm_servers mdm_server")
         exit(1)
 

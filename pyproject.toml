@@ -18,4 +18,4 @@ license = "GPL-3.0-or-later"
 keywords = ["abm", "apple business manager"]
 
 [project.scripts]
-pyabm-cli = "pyabm:cli:main"
+pyabm-cli = "pyabm.cli:main"
