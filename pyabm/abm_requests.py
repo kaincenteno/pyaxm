@@ -96,7 +96,7 @@ def list_devices_in_mdm_server(server_id: str, access_token, next=None) -> MdmSe
     if next:
         url = next
     else:
-        url = f'https://api-business.apple.com/v1/mdmServers/{server_id}/relationships/devices'
+        url = f'https://api-business.apple.com/v1/mdmServers/{server_id}/relationships/devices?limit=1000'
 
     retries = 3
     for attempt in range(retries):
