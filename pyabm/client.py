@@ -97,7 +97,7 @@ class Client:
     def list_devices(self) -> list[OrgDevice]:
         '''Returns a list of devices in the organization.
         '''
-        response = abm_requests.list_devices(self.access_token)
+        response = abm_requests.list_devices(self.access_token.value)
         devices = response.data
         count = 1
 

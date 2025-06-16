@@ -1,6 +1,12 @@
 from pyabm.client import Client
 import sys
 
+def list_devices():
+    client = Client()
+    devices = client.list_devices()
+    for device in devices:
+        print(device)
+
 def query_device():
     client = Client()
     if len(sys.argv) < 3:
@@ -30,10 +36,12 @@ def list_devices_in_mdm_server():
 def main():
     if not len(sys.argv) > 1:
         print("Usage: pyabm-cli <command> [<args>]")
-        print("Available commands: device mdm_servers mdm_server")
+        print("Available commands: devices device mdm_servers mdm_server")
         exit(1)
 
     match sys.argv[1]:
+        case "devices":
+            list_devices()
         case "device":
             query_device()
         case "mdm_servers":
@@ -42,7 +50,7 @@ def main():
             list_devices_in_mdm_server()
         case _:
             print("Invalid command.")
-            print("Available commands: device mdm_servers mdm_server")
+            print("Available commands: devices device mdm_servers mdm_server")
             exit(1)
 
 if __name__ == "__main__":
