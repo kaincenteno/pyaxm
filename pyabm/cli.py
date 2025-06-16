@@ -3,13 +3,12 @@ import sys
 
 def query_device():
     client = Client()
-    if sys.argv[1] == "device":
-        if len(sys.argv) < 3:
-            print("Usage: python cli.py device <device_id>")
-            exit(1)
-        device_id = sys.argv[2]
-        device = client.get_device(device_id)
-        print(device)
+    if len(sys.argv) < 3:
+        print("Usage: python cli.py device <device_id>")
+        exit(1)
+    device_id = sys.argv[2]
+    device = client.get_device(device_id)
+    print(device)
 
 def list_mdm_servers():
     client = Client()
