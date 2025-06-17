@@ -1,11 +1,34 @@
 import requests
 from pyaxm.models import OrgDeviceResponse, MdmServersResponse, MdmServerDevicesLinkagesResponse, OrgDevicesResponse
 import time
+from functools import wraps
 
 # creating a session to reuse connections
 # didn't really improved performance, should revert back 
 # to requests without session?
 session = requests.Session()
+
+def exponential_backoff(retries=5, backoff_factor=2):
+    """
+    A decorator for retrying a function with exponential backoff.
+    
+    :param retries: Number of retry attempts.
+    :param backoff_factor: Factor by which the wait time increases.
+    """
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            for attempt in range(retries):
+                try:
+                    return func(*args, **kwargs)
+                except requests.exceptions.RequestException as e:
+                    if attempt < retries - 1:
+                        wait_time = backoff_factor ** attempt
+                        time.sleep(wait_time)
+                    else:
+                        raise e
+        return wrapper
+    return decorator
 
 def _auth_headers(access_token: str) -> dict:
     """
@@ -34,6 +57,7 @@ def get_access_token(data: dict) -> dict:
     response.raise_for_status()
     return response.json()
 
+@exponential_backoff(retries=5, backoff_factor=2)
 def list_devices(access_token, next=None) -> OrgDevicesResponse:
     """
     List all organization devices.
@@ -49,22 +73,14 @@ def list_devices(access_token, next=None) -> OrgDevicesResponse:
         # increase this when apple fixes the issue to 1000
         url = 'https://api-business.apple.com/v1/orgDevices'
 
-    retries = 5
-    for attempt in range(retries):
-        response = session.get(url, headers=_auth_headers(access_token))
+    response = session.get(url, headers=_auth_headers(access_token))
 
-        # ABM has been returning 500, this is a workaround to retry 2 times
-        # before raising an error.
-        if response.status_code != 200:
-            if attempt < retries - 1:
-                time.sleep(2 ** attempt)
-                continue
-            else:
-                print(response.text)
-                response.raise_for_status()   
-        else:
-            return OrgDevicesResponse.model_validate(response.json())
+    if response.status_code == 200:
+        return OrgDevicesResponse.model_validate(response.json())
+    else:
+        response.raise_for_status()
 
+@exponential_backoff(retries=5, backoff_factor=2)
 def get_device(device_id, access_token) -> OrgDeviceResponse:
     """
     Retrieve an organization device by its ID.
@@ -82,6 +98,7 @@ def get_device(device_id, access_token) -> OrgDeviceResponse:
     else:
         response.raise_for_status()
 
+@exponential_backoff(retries=5, backoff_factor=2)
 def list_mdm_servers(access_token) -> MdmServersResponse:
     """
     List all MDM servers.
@@ -97,6 +114,7 @@ def list_mdm_servers(access_token) -> MdmServersResponse:
     else:
         response.raise_for_status()
 
+@exponential_backoff(retries=5, backoff_factor=2)
 def list_devices_in_mdm_server(server_id: str, access_token, next=None) -> MdmServerDevicesLinkagesResponse:
     """
     List devices in a specific MDM server.
@@ -111,18 +129,11 @@ def list_devices_in_mdm_server(server_id: str, access_token, next=None) -> MdmSe
     else:
         url = f'https://api-business.apple.com/v1/mdmServers/{server_id}/relationships/devices?limit=1000'
 
-    retries = 5
-    for attempt in range(retries):
-        response = session.get(url, headers=_auth_headers(access_token))
+    response = session.get(url, headers=_auth_headers(access_token))
 
-        # ABM has been returning 500, this is a workaround to retry 2 times
-        # before raising an error.
-        if response.status_code != 200:
-            if attempt < retries - 1:
-                time.sleep(2 ** attempt)
-                continue
-            else:
-                print(response.text)
-                response.raise_for_status()
-        else:
-            return MdmServerDevicesLinkagesResponse.model_validate(response.json())
+    # ABM has been returning 500, this is a workaround to retry 2 times
+    # before raising an error.
+    if response.status_code == 200:
+        return MdmServerDevicesLinkagesResponse.model_validate(response.json())
+    else:
+        response.raise_for_status()
