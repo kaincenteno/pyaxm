@@ -40,9 +40,7 @@ print(devices)
 ``` 
 
 ## Issues:
-* Pagination is not setup yet for specific server, it does paginate if querying
-all abm devices.
-
-* Data returned needs to be pretty up. Currently it is returning objects.
+* need to add tests
+* not all api functionability is there
 
 This is still a work in progress
