@@ -126,6 +126,13 @@ class Client:
     ## - list_devices_in_mdm_server
     def list_devices_in_mdm_server(self, server_id: str) -> list[str]:
         '''Returns a list of device IDs (serials) in the specified MDM server.
-        TODO: Add pagination as currently it only returns the first page of results.'''
+        '''
         response = abm_requests.list_devices_in_mdm_server(server_id, self.access_token.value)
-        return [data.id for data in response.data]
+        devices = response.data
+
+        while response.links.next:
+            next_page = response.links.next
+            response = abm_requests.list_devices_in_mdm_server(server_id, self.access_token.value, next=next_page)
+            devices.extend(response.data)
+
+        return [device.id for device in devices]
