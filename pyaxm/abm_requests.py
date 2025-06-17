@@ -49,7 +49,7 @@ def list_devices(access_token, next=None) -> OrgDevicesResponse:
         # increase this when apple fixes the issue to 1000
         url = 'https://api-business.apple.com/v1/orgDevices'
 
-    retries = 3
+    retries = 5
     for attempt in range(retries):
         response = session.get(url, headers=_auth_headers(access_token))
 
@@ -57,7 +57,7 @@ def list_devices(access_token, next=None) -> OrgDevicesResponse:
         # before raising an error.
         if response.status_code != 200:
             if attempt < retries - 1:
-                time.sleep(5)
+                time.sleep(2 ** attempt)
                 continue
             else:
                 print(response.text)
@@ -111,7 +111,7 @@ def list_devices_in_mdm_server(server_id: str, access_token, next=None) -> MdmSe
     else:
         url = f'https://api-business.apple.com/v1/mdmServers/{server_id}/relationships/devices?limit=1000'
 
-    retries = 3
+    retries = 5
     for attempt in range(retries):
         response = session.get(url, headers=_auth_headers(access_token))
 
@@ -119,7 +119,7 @@ def list_devices_in_mdm_server(server_id: str, access_token, next=None) -> MdmSe
         # before raising an error.
         if response.status_code != 200:
             if attempt < retries - 1:
-                time.sleep(5)
+                time.sleep(2 ** attempt)
                 continue
             else:
                 print(response.text)
