@@ -57,7 +57,6 @@ def list_devices(access_token, next=None) -> OrgDevicesResponse:
         # before raising an error.
         if response.status_code != 200:
             if attempt < retries - 1:
-                print(response.status_code, 'sleeping')
                 time.sleep(5)
                 continue
             else:

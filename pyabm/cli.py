@@ -1,11 +1,12 @@
 from pyabm.client import Client
 import sys
+import pandas as pd
 
 def list_devices():
     client = Client()
     devices = client.list_devices()
-    for device in devices:
-        print(device)
+    df = pd.DataFrame(devices)
+    df.to_csv(sys.stdout, index=False)
 
 def query_device():
     client = Client()
@@ -14,13 +15,14 @@ def query_device():
         exit(1)
     device_id = sys.argv[2]
     device = client.get_device(device_id)
-    print(device)
+    df = pd.DataFrame([device])
+    df.to_csv(sys.stdout, index=False)
 
 def list_mdm_servers():
     client = Client()
     servers = client.list_mdm_servers()
-    for server in servers:
-        print(server)
+    df = pd.DataFrame(servers)
+    df.to_csv(sys.stdout, index=False)
 
 def list_devices_in_mdm_server():
     if len(sys.argv) < 3:
@@ -30,8 +32,8 @@ def list_devices_in_mdm_server():
     server_id = sys.argv[2]
     client = Client()
     devices = client.list_devices_in_mdm_server(server_id)
-    for device in devices:
-        print(device)
+    df = pd.DataFrame(devices)
+    df.to_csv(sys.stdout, index=False)
 
 def main():
     if not len(sys.argv) > 1:
