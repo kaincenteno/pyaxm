@@ -10,8 +10,8 @@ import os
 import json
 import time
 
-ABM_CLIENT_ID = os.environ['ABM_CLIENT_ID']
-ABM_KEY_ID = os.environ['ABM_KEY_ID']
+ABM_CLIENT_ID = os.environ['AXM_CLIENT_ID']
+ABM_KEY_ID = os.environ['AXM_KEY_ID']
 ABM_FOLDER = os.path.join(os.path.expanduser('~'), '.config', 'pyaxm')
 KEY_PATH = os.path.join(ABM_FOLDER, 'key.pem')
 TOKEN_PATH = os.path.join(ABM_FOLDER, 'token.json')
@@ -164,7 +164,7 @@ class Client:
             next_page = response.links.next
             response = abm_requests.list_devices_in_mdm_server(server_id, self.access_token.value, next=next_page)
             devices_dump = response.model_dump(include=include_keys)
-            devices_dump = [device for device in devices['data']]
+            devices_dump = [device for device in devices_dump['data']]
             devices.extend(devices_dump)
 
         return devices
