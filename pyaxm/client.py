@@ -1,7 +1,7 @@
 
 import datetime as dt
-from pyabm.models import OrgDevice
-from pyabm import abm_requests
+from pyaxm.models import OrgDevice
+from pyaxm import abm_requests
 import datetime as dt
 import Cryptodome.PublicKey.ECC as ECC
 from authlib.jose import jwt
@@ -12,7 +12,7 @@ import time
 
 ABM_CLIENT_ID = os.environ['ABM_CLIENT_ID']
 ABM_KEY_ID = os.environ['ABM_KEY_ID']
-ABM_FOLDER = os.path.join(os.path.expanduser('~'), '.config', 'pyabm')
+ABM_FOLDER = os.path.join(os.path.expanduser('~'), '.config', 'pyaxm')
 KEY_PATH = os.path.join(ABM_FOLDER, 'key.pem')
 TOKEN_PATH = os.path.join(ABM_FOLDER, 'token.json')
 

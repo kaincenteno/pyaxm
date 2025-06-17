@@ -1,5 +1,5 @@
 import requests
-from pyabm.models import OrgDeviceResponse, MdmServersResponse, MdmServerDevicesLinkagesResponse, OrgDevicesResponse
+from pyaxm.models import OrgDeviceResponse, MdmServersResponse, MdmServerDevicesLinkagesResponse, OrgDevicesResponse
 import time
 
 # creating a session to reuse connections
