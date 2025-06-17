@@ -6,9 +6,9 @@ https://developer.apple.com/documentation/applebusinessmanagerapi
 You will need to setup 2 environmental variables that are provided
 when creating the private key in ABM:
 
-`ABM_CLIENT_ID` and `ABM_KEY_ID`
+`AXM_CLIENT_ID` and `AXM_KEY_ID`
 
-Place the private key in your home directory inside the `.config/pyabm` folder
+Place the private key in your home directory inside the `.config/pyaxm` folder
 and rename it `key.pem`
 
 This location will be used to store a cached access_token that can be reused
@@ -19,30 +19,28 @@ trying to get a new token.
 ## Installation:
 Download the latest release and install it using
 
-`pip install pyabm-<date>.tar.gz`
+`pip install pyaxm-<date>.tar.gz`
 
 ## CLI:
-You can query directly through the terminal by running `abm-cli`
+You can query directly through the terminal by running `pyaxm-cli`
 
-`abm-cli devices` -> returns all devices in ABM
-`abm-cli servers` -> returns all servers in ABM
-`abm-cli device <serial_number>` -> returns single device information
-`abm-cli server <server_id>` -> returns all devices in that server
+`pyaxm-cli devices` -> returns all devices in ABM
+`pyaxm-cli servers` -> returns all servers in ABM
+`pyaxm-cli device <serial_number>` -> returns single device information
+`pyaxm-cli server <server_id>` -> returns all devices in that server
 
 # Client:
 Example usage:
-```from pyabm.client import Client
+```from pyaxm.client import Client
 
-abm_client = Client()
+axm_client = Client()
 
-devices = abm_client.list_devices()
+devices = axm_client.list_devices()
 print(devices)
 ``` 
 
 ## Issues:
-* Pagination is not setup yet for specific server, it does paginate if querying
-all abm devices.
-
-* Data returned needs to be pretty up. Currently it is returning objects.
+* need to add tests
+* not all api functionability is there
 
 This is still a work in progress

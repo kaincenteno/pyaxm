@@ -1,7 +1,7 @@
 
 import datetime as dt
-from pyabm.models import OrgDevice
-from pyabm import abm_requests
+from pyaxm.models import OrgDevice
+from pyaxm import abm_requests
 import datetime as dt
 import Cryptodome.PublicKey.ECC as ECC
 from authlib.jose import jwt
@@ -10,9 +10,9 @@ import os
 import json
 import time
 
-ABM_CLIENT_ID = os.environ['ABM_CLIENT_ID']
-ABM_KEY_ID = os.environ['ABM_KEY_ID']
-ABM_FOLDER = os.path.join(os.path.expanduser('~'), '.config', 'pyabm')
+ABM_CLIENT_ID = os.environ['AXM_CLIENT_ID']
+ABM_KEY_ID = os.environ['AXM_KEY_ID']
+ABM_FOLDER = os.path.join(os.path.expanduser('~'), '.config', 'pyaxm')
 KEY_PATH = os.path.join(ABM_FOLDER, 'key.pem')
 TOKEN_PATH = os.path.join(ABM_FOLDER, 'token.json')
 
@@ -94,26 +94,24 @@ class Client:
     def __init__(self):
         self.access_token = AccessToken()
     
-    def list_devices(self) -> list[OrgDevice]:
+    def list_devices(self) -> list[dict]:
         '''Returns a list of devices in the organization.
         '''
         response = abm_requests.list_devices(self.access_token.value)
-        devices = response.data
-        count = 1
+        devices = [data.attributes.model_dump() for data in response.data]
 
         while response.links.next:
-            count += 1
-            print(f"Fetching page {count} of devices...")
             next_page = response.links.next
             response = abm_requests.list_devices(self.access_token.value, next=next_page)
-            devices.extend(response.data)
+            devices.extend([data.attributes.model_dump() for data in response.data])
             
         return devices
 
-
-    def get_device(self, device_id: str) -> OrgDevice:
+    def get_device(self, device_id: str) -> dict:
+        '''Returns a device's details as a dict.
+        '''
         response = abm_requests.get_device(device_id, self.access_token.value)
-        return response.data
+        return response.data.attributes.model_dump()
 
     ## - MDM servers
     def list_mdm_servers(self) -> list[dict]:
@@ -121,18 +119,52 @@ class Client:
         TODO: Add pagination as currently it only returns the first page of results.
         '''
         response = abm_requests.list_mdm_servers(self.access_token.value)
-        return [{'server_name': data.attributes.serverName, 'server_id': data.id} for data in response.data]
+        exclude_keys = {
+            'data': {
+                '__all__': {
+                    'relationships',
+                    'type'
+                },
+            },
+            'included': True,
+            'links': True,
+            'meta': True,
+        }
+
+        data = response.model_dump(exclude=exclude_keys)
+        data = [
+            {
+                'id': server.id,
+                'createdDateTime': server.attributes.createdDateTime,
+                'serverName': server.attributes.serverName,
+                'serverType': server.attributes.serverType,
+                'updatedDateTime': server.attributes.updatedDateTime
+            } for server in response.data
+        ]
+
+        return data
 
     ## - list_devices_in_mdm_server
     def list_devices_in_mdm_server(self, server_id: str) -> list[str]:
         '''Returns a list of device IDs (serials) in the specified MDM server.
         '''
         response = abm_requests.list_devices_in_mdm_server(server_id, self.access_token.value)
-        devices = response.data
+        include_keys= {
+            'data': {
+                '__all__': {
+                    'id'
+                }
+            }
+        }
+
+        devices = response.model_dump(include=include_keys)
+        devices = [device for device in devices['data']]
 
         while response.links.next:
             next_page = response.links.next
             response = abm_requests.list_devices_in_mdm_server(server_id, self.access_token.value, next=next_page)
-            devices.extend(response.data)
+            devices_dump = response.model_dump(include=include_keys)
+            devices_dump = [device for device in devices_dump['data']]
+            devices.extend(devices_dump)
 
-        return [device.id for device in devices]
+        return devices

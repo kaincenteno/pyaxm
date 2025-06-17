@@ -2,3 +2,4 @@ pydantic
 requests
 Authlib
 pycryptodomex
+pandas
