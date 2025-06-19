@@ -35,10 +35,20 @@ def list_devices_in_mdm_server():
     df = pd.DataFrame(devices)
     df.to_csv(sys.stdout, index=False)
 
+def get_device_server_assignment():
+    client = Client()
+    if len(sys.argv) < 3:
+        print("Usage: pyaxm-cli mdm_server_assigned <device_id>")
+        exit(1)
+    device_id = sys.argv[2]
+    device = client.get_device_server_assignment(device_id)
+    df = pd.DataFrame([device])
+    df.to_csv(sys.stdout, index=False)
+
 def main():
     if not len(sys.argv) > 1:
         print("Usage: pyaxm-cli <command> [<args>]")
-        print("Available commands: devices device mdm_servers mdm_server")
+        print("Available commands: devices device mdm_servers mdm_server mdm_server_assigned")
         exit(1)
 
     match sys.argv[1]:
@@ -50,9 +60,11 @@ def main():
             list_mdm_servers()
         case "mdm_server":
             list_devices_in_mdm_server()
+        case "mdm_server_assigned":
+            get_device_server_assignment()
         case _:
             print("Invalid command.")
-            print("Available commands: devices device mdm_servers mdm_server")
+            print("Available commands: devices device mdm_servers mdm_server mdm_server_assigned")
             exit(1)
 
 if __name__ == "__main__":

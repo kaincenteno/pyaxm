@@ -168,3 +168,13 @@ class Client:
             devices.extend(devices_dump)
 
         return devices
+
+    def get_device_server_assignment(self, device_id: str) -> dict:
+        '''Returns a device's assigned mdm server as a dict.
+        '''
+        response = abm_requests.get_device_server_assignment(device_id, self.access_token.value)
+        include_keys = {
+            'id'
+        }
+        
+        return response.data.model_dump(include=include_keys)

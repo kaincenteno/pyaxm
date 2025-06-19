@@ -1,4 +1,6 @@
-The purpose of this repo is to create a python library to easily get information using the Apple Business Manager API using Python
+The purpose of this repo is to create a python library to easily get information using the Apple Business Manager API using Python.
+
+A CLI command is also included, `pyacm-cli`.
 
 https://developer.apple.com/documentation/applebusinessmanagerapi
 
@@ -17,17 +19,18 @@ access tokens will result in a response with status code 400 when
 trying to get a new token.
 
 ## Installation:
-Download the latest release and install it using
-
-`pip install pyaxm-<date>.tar.gz`
+`pip install pyaxm`
 
 ## CLI:
-You can query directly through the terminal by running `pyaxm-cli`
+`pyaxm-cli` -> returns commands available
 
 `pyaxm-cli devices` -> returns all devices in ABM
 `pyaxm-cli servers` -> returns all servers in ABM
 `pyaxm-cli device <serial_number>` -> returns single device information
 `pyaxm-cli server <server_id>` -> returns all devices in that server
+`pyaxm-cli mdm_server_assigned <serial_number>` -> returns device assigned server id
+
+The data returned is on CSV format so you can store it as a CSV if needed
 
 # Client:
 Example usage:
@@ -37,7 +40,20 @@ axm_client = Client()
 
 devices = axm_client.list_devices()
 print(devices)
-``` 
+
+device = axm_client.get_device(device_id='SERIAL_NUMBER')
+print(device)
+
+mdm_servers = axm_client.list_mdm_servers()
+print(mdm_servers)
+
+# The MDM server ID can be extracted from listing all mdm servers
+mdm_server = axm_client.list_devices_in_mdm_server(server_id="MDM_SERVER_ID")
+print(mdm_server)
+
+device_assigned_server = axm_client.list_devices_in_mdm_server(device_id='SERIAL_NUMBER')
+print(device_assigned_server)
+```
 
 ## Issues:
 * need to add tests
