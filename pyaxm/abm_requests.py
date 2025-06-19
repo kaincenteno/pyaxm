@@ -1,5 +1,11 @@
 import requests
-from pyaxm.models import OrgDeviceResponse, MdmServersResponse, MdmServerDevicesLinkagesResponse, OrgDevicesResponse
+from pyaxm.models import (
+    OrgDeviceResponse,
+    MdmServersResponse,
+    MdmServerDevicesLinkagesResponse,
+    OrgDevicesResponse,
+    OrgDeviceAssignedServerLinkageResponse,
+)
 import time
 from functools import wraps
 
@@ -135,5 +141,17 @@ def list_devices_in_mdm_server(server_id: str, access_token, next=None) -> MdmSe
     # before raising an error.
     if response.status_code == 200:
         return MdmServerDevicesLinkagesResponse.model_validate(response.json())
+    else:
+        response.raise_for_status()
+
+@exponential_backoff(retries=5, backoff_factor=2)
+def get_device_server_assignment(device_id, access_token) -> OrgDeviceAssignedServerLinkageResponse:
+    '''Get the server id that a device is assigned to
+    '''
+    url = f'https://api-business.apple.com/v1/orgDevices/{device_id}/relationships/assignedServer'
+    response = session.get(url, headers=_auth_headers(access_token))
+    
+    if response.status_code == 200:
+        return OrgDeviceAssignedServerLinkageResponse.model_validate(response.json())
     else:
         response.raise_for_status()
