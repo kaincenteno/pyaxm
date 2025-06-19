@@ -28,6 +28,7 @@ trying to get a new token.
 `pyaxm-cli servers` -> returns all servers in ABM
 `pyaxm-cli device <serial_number>` -> returns single device information
 `pyaxm-cli server <server_id>` -> returns all devices in that server
+`pyaxm-cli mdm_server_assigned <serial_number>` -> returns device assigned server id
 
 The data returned is on CSV format so you can store it as a CSV if needed
 
@@ -48,6 +49,10 @@ print(mdm_servers)
 
 # The MDM server ID can be extracted from listing all mdm servers
 mdm_server = axm_client.list_devices_in_mdm_server(server_id="MDM_SERVER_ID")
+print(mdm_server)
+
+device_assigned_server = axm_client.list_devices_in_mdm_server(device_id='SERIAL_NUMBER')
+print(device_assigned_server)
 ```
 
 ## Issues:

@@ -48,7 +48,7 @@ def get_device_server_assignment():
 def main():
     if not len(sys.argv) > 1:
         print("Usage: pyaxm-cli <command> [<args>]")
-        print("Available commands: devices device mdm_servers mdm_server")
+        print("Available commands: devices device mdm_servers mdm_server mdm_server_assigned")
         exit(1)
 
     match sys.argv[1]:
