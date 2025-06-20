@@ -15,6 +15,9 @@ def query_device():
         exit(1)
     device_id = sys.argv[2]
     device = client.get_device(device_id)
+    if not device:
+        print(f'{device_id} not found')
+        return
     df = pd.DataFrame([device])
     df.to_csv(sys.stdout, index=False)
 

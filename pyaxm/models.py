@@ -195,11 +195,11 @@ class ErrorResponse(BaseModel):
         code: str
         detail: str
         id: Optional[str]
-        source: Optional[JsonPointer|Parameter]
+        source: Optional[JsonPointer|Parameter] = None
         status: str
         title: str
-        links: Optional[ErrorLinks]
-        meta: Optional[Meta]
+        links: Optional[ErrorLinks] = None
+        meta: Optional[Meta] = None
     
     errors: Optional[List[Errors]]
 

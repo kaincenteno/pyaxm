@@ -9,6 +9,9 @@ from pyaxm.models import (
 import time
 from functools import wraps
 
+class DeviceError(Exception):
+    pass
+
 # creating a session to reuse connections
 # didn't really improved performance, should revert back 
 # to requests without session?
@@ -101,6 +104,8 @@ def get_device(device_id, access_token) -> OrgDeviceResponse:
     
     if response.status_code == 200:
         return OrgDeviceResponse.model_validate(response.json())
+    elif response.status_code == 404:
+        raise DeviceError(f'Device {device_id} not found')
     else:
         response.raise_for_status()
 
