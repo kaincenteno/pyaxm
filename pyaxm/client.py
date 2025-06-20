@@ -107,14 +107,11 @@ class Client:
             
         return devices
 
-    def get_device(self, device_id: str) -> dict|None:
+    def get_device(self, device_id: str) -> dict:
         '''Returns a device's details as a dict.
         '''
-        try:
-            response = abm_requests.get_device(device_id, self.access_token.value)
-            return response.data.attributes.model_dump()
-        except abm_requests.DeviceError:
-            return None
+        response = abm_requests.get_device(device_id, self.access_token.value)
+        return response.data.attributes.model_dump()
         
 
     ## - MDM servers
@@ -180,5 +177,5 @@ class Client:
         include_keys = {
             'id'
         }
-        
+
         return response.data.model_dump(include=include_keys)

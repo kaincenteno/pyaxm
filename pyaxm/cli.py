@@ -15,9 +15,10 @@ def query_device():
         print("Usage: pyaxm-cli device <device_id>")
         exit(1)
     device_id = sys.argv[2]
-    device = client.get_device(device_id)
-    if not device:
-        print(f'{device_id} not found')
+    try:
+        device = client.get_device(device_id)
+    except DeviceError as e:
+        print(e)
         return
     df = pd.DataFrame([device])
     df.to_csv(sys.stdout, index=False)
