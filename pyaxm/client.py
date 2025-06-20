@@ -112,6 +112,7 @@ class Client:
         '''
         response = abm_requests.get_device(device_id, self.access_token.value)
         return response.data.attributes.model_dump()
+        
 
     ## - MDM servers
     def list_mdm_servers(self) -> list[dict]:
@@ -176,5 +177,5 @@ class Client:
         include_keys = {
             'id'
         }
-        
+
         return response.data.model_dump(include=include_keys)

@@ -1,6 +1,7 @@
 from pyaxm.client import Client
 import sys
 import pandas as pd
+from pyaxm.abm_requests import DeviceError
 
 def list_devices():
     client = Client()
@@ -14,7 +15,11 @@ def query_device():
         print("Usage: pyaxm-cli device <device_id>")
         exit(1)
     device_id = sys.argv[2]
-    device = client.get_device(device_id)
+    try:
+        device = client.get_device(device_id)
+    except DeviceError as e:
+        print(e)
+        return
     df = pd.DataFrame([device])
     df.to_csv(sys.stdout, index=False)
 
@@ -41,7 +46,11 @@ def get_device_server_assignment():
         print("Usage: pyaxm-cli mdm_server_assigned <device_id>")
         exit(1)
     device_id = sys.argv[2]
-    device = client.get_device_server_assignment(device_id)
+    try:
+        device = client.get_device_server_assignment(device_id)
+    except DeviceError as e:
+        print(e)
+        return
     df = pd.DataFrame([device])
     df.to_csv(sys.stdout, index=False)
 
