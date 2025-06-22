@@ -174,7 +174,10 @@ class Client:
 
         # use the ID to check the status until it is complete
         activity_response = self.abm.get_device_activity(unassign_response.data.id, self.access_token.value)
-        while 'COMPLETED' not in activity_response.data.attributes.status:
-            time.sleep(5)
+        retry = 0
+        while 'COMPLETED' not in activity_response.data.attributes.status and retry < 5:
+            time.sleep(2 ** retry)
+            retry += 1
             activity_response = self.abm.get_device_activity(unassign_response.data.id, self.access_token.value)
-        print(activity_response)
+
+        return activity_response.data.attributes.model_dump()
