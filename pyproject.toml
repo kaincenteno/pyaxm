@@ -13,6 +13,7 @@ dependencies = [
   "Authlib",
   "pycryptodomex",
   "pandas",
+  "typer",
 ]
 readme = "README.md"
 license = "GPL-3.0-or-later"
