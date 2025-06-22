@@ -156,3 +156,28 @@ class Client:
             'id'
         }
         return response.data.model_dump(include=include_keys)
+
+    @ensure_valid_token
+    def assign_unassign_device_to_mdm_server(
+        self, device_id: str, server_id: str, action: str
+    ) -> None:
+        """
+        Assign or unassign a device to/from an MDM server.
+
+        :param device_id: The ID of the device.
+        :param server_id: The ID of the MDM server.
+        :param action: 'assign' or 'unassign'.
+        """
+        unassign_response = self.abm.assign_unassign_device_to_mdm_server(
+            device_id, server_id, action, self.access_token.value
+        )
+
+        # use the ID to check the status until it is complete
+        activity_response = self.abm.get_device_activity(unassign_response.data.id, self.access_token.value)
+        retry = 0
+        while 'COMPLETED' not in activity_response.data.attributes.status and retry < 5:
+            time.sleep(2 ** retry)
+            retry += 1
+            activity_response = self.abm.get_device_activity(unassign_response.data.id, self.access_token.value)
+
+        return activity_response.data.attributes.model_dump()

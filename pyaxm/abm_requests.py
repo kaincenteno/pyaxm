@@ -5,6 +5,8 @@ from pyaxm.models import (
     MdmServerDevicesLinkagesResponse,
     OrgDevicesResponse,
     OrgDeviceAssignedServerLinkageResponse,
+    OrgDeviceActivityCreateRequest,
+    OrgDeviceActivityResponse,
 )
 import time
 from functools import wraps
@@ -154,5 +156,74 @@ class ABMRequests:
             return OrgDeviceAssignedServerLinkageResponse.model_validate(response.json())
         elif response.status_code == 404:
             raise DeviceError(response.json()['errors'][0]['title'])
+        else:
+            response.raise_for_status()
+
+    @exponential_backoff(retries=5, backoff_factor=2)
+    def assign_unassign_device_to_mdm_server(
+        self, device_id: str, server_id: str, action: str, access_token: str
+    ) -> OrgDeviceActivityResponse:
+        """
+        Assign or unassign a device to/from an MDM server.
+
+        :param device_id: The ID of the device.
+        :param server_id: The ID of the MDM server.
+        :param action: 'assign' or 'unassign'.
+        :param access_token: The access token for authentication.
+        """
+        url = f'https://api-business.apple.com/v1/orgDeviceActivities'
+
+        request_data = {
+            "data": {
+            "type": "orgDeviceActivities",
+            "attributes": {
+                "activityType": action
+            },
+            "relationships": {
+                "devices": {
+                "data": [
+                    {
+                    "id": device_id,
+                    "type": "orgDevices"
+                    }
+                ]
+                },
+                "mdmServer": {
+                "data": {
+                    "id": server_id,
+                    "type": "mdmServers"
+                }
+                }
+            }
+            }
+        }
+
+        request_data = OrgDeviceActivityCreateRequest.model_validate(request_data)
+
+        response = self.session.post(
+            url,
+            headers=self._auth_headers(access_token),
+            json=request_data.model_dump()
+        )
+
+        if response.status_code == 201:
+            return OrgDeviceActivityResponse.model_validate(response.json())
+        else:
+            response.raise_for_status()
+
+    @exponential_backoff(retries=5, backoff_factor=2)
+    def get_device_activity(self, activity_id: str, access_token: str) -> OrgDeviceActivityResponse:
+        """
+        Get the status of a device activity by its ID.
+
+        :param activity_id: The ID of the device activity.
+        :param access_token: The access token for authentication.
+        :return: An OrgDeviceActivityResponse object containing the activity information.
+        """
+        url = f'https://api-business.apple.com/v1/orgDeviceActivities/{activity_id}'
+        response = self.session.get(url, headers=self._auth_headers(access_token))
+
+        if response.status_code == 200:
+            return OrgDeviceActivityResponse.model_validate(response.json())
         else:
             response.raise_for_status()

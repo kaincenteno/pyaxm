@@ -3,8 +3,8 @@ from typing import List, Optional
 from enum import Enum
 
 class OrgDeviceActivityType(Enum):
-    ASSIGN_DEVICE = "ASSIGN_DEVICE"
-    UNASSIGN_DEVICE = "UNASSIGN_DEVICE"
+    ASSIGN_DEVICES = "ASSIGN_DEVICES"
+    UNASSIGN_DEVICES = "UNASSIGN_DEVICES"
 
 class DocumentLinks(BaseModel):
     self: str # uri-reference to the current document
@@ -86,6 +86,7 @@ class OrgDeviceActivityCreateRequest(BaseModel):
     class Data(BaseModel):
         class Attributes(BaseModel):
             activityType: OrgDeviceActivityType
+            model_config = ConfigDict(use_enum_values=True)
         
         class Relationships(BaseModel):
             class Devices(BaseModel):
