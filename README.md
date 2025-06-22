@@ -35,6 +35,10 @@ Usage: pyaxm-cli COMMAND [ARGS]
 
 `mdm-server-assigned` -> Get the server assignment for a device.
 
+`assign-device` -> Assign a device to an MDM server.
+
+`unassign-device` -> Unassign a device from an MDM server.
+
 The data returned is on CSV format so you can store it as a CSV if needed
 
 # Client:
@@ -58,10 +62,16 @@ print(mdm_server)
 
 device_assigned_server = axm_client.list_devices_in_mdm_server(device_id='SERIAL_NUMBER')
 print(device_assigned_server)
+
+assignment_result = axm_client.assign_unassign_device_to_mdm_server(
+    device_id='SERIAL_NUMBER',
+    server_id="MDM_SERVER_ID",
+    action="ASSIGN_DEVICES"|"UNASSIGN_DEVICES"
+)
 ```
 
 ## Issues:
 * need to add tests
-* not all api functionability is there
+* unassign, assign devices need to be able to pass more than 1 device
 
 This is still a work in progress
