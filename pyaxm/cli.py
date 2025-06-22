@@ -43,5 +43,10 @@ def mdm_server_assigned(device_id: str):
     except DeviceError as e:
         typer.echo(e)
 
+@app.command()
+def assign_device(device_id: str, server_id: str):
+    """Assign a device to an MDM server."""
+    client.assign_unassign_device_to_mdm_server(device_id, server_id, 'ASSIGN_DEVICES')
+
 if __name__ == "__main__":
     app()
