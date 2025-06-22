@@ -22,13 +22,18 @@ trying to get a new token.
 `pip install pyaxm`
 
 ## CLI:
-`pyaxm-cli` -> returns commands available
+Usage: pyaxm-cli COMMAND [ARGS]
 
-`pyaxm-cli devices` -> returns all devices in ABM
-`pyaxm-cli servers` -> returns all servers in ABM
-`pyaxm-cli device <serial_number>` -> returns single device information
-`pyaxm-cli server <server_id>` -> returns all devices in that server
-`pyaxm-cli mdm_server_assigned <serial_number>` -> returns device assigned server id
+### Commands
+`devices` -> List all devices in the organization.
+
+`device` -> Get a device by ID.
+
+`mdm-servers` -> List all MDM servers.
+
+`mdm-server` -> List devices in a specific MDM server.
+
+`mdm-server-assigned` -> Get the server assignment for a device.
 
 The data returned is on CSV format so you can store it as a CSV if needed
 

@@ -20,4 +20,4 @@ license = "GPL-3.0-or-later"
 keywords = ["abm", "apple business manager", "axm"]
 
 [project.scripts]
-pyaxm-cli = "pyaxm.cli:main"
+pyaxm-cli = "pyaxm.cli:app"
