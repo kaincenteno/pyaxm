@@ -74,10 +74,7 @@ class ABMRequests:
         if next:
             url = next
         else:
-            # Default is 100 devices. Documentation says max is 1000 but 
-            # currently querying a unspecified number returns status code 500
-            # increase this when apple fixes the issue to 1000
-            url = 'https://api-business.apple.com/v1/orgDevices'
+            url = 'https://api-business.apple.com/v1/orgDevices?limit=1000'
 
         response = self.session.get(url, headers=self._auth_headers(access_token))
 
