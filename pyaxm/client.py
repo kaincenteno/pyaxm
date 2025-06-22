@@ -6,6 +6,7 @@ import os
 import json
 import time
 from pyaxm.abm_requests import ABMRequests
+from functools import wraps
 
 ABM_CLIENT_ID = os.environ['AXM_CLIENT_ID']
 ABM_KEY_ID = os.environ['AXM_KEY_ID']
@@ -17,6 +18,14 @@ class AccessToken:
     def __init__(self, value, expires_at):
         self.value = value
         self.expires_at = expires_at
+
+def ensure_valid_token(method):
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        if self.access_token.expires_at <= dt.datetime.now(dt.timezone.utc):
+            self.access_token = self._get_or_refresh_token()
+        return method(self, *args, **kwargs)
+    return wrapper
 
 class Client:
     def __init__(self):
@@ -79,6 +88,7 @@ class Client:
         ).decode("utf-8")
         return assertion
 
+    @ensure_valid_token
     def list_devices(self) -> list[dict]:
         response = self.abm.list_devices(self.access_token.value)
         devices = [data.attributes.model_dump() for data in response.data]
@@ -88,10 +98,12 @@ class Client:
             devices.extend([data.attributes.model_dump() for data in response.data])
         return devices
 
+    @ensure_valid_token
     def get_device(self, device_id: str) -> dict:
         response = self.abm.get_device(device_id, self.access_token.value)
         return response.data.attributes.model_dump()
     
+    @ensure_valid_token
     def list_mdm_servers(self) -> list[dict]:
         response = self.abm.list_mdm_servers(self.access_token.value)
         exclude_keys = {
@@ -117,6 +129,7 @@ class Client:
         ]
         return data
 
+    @ensure_valid_token
     def list_devices_in_mdm_server(self, server_id: str) -> list[str]:
         response = self.abm.list_devices_in_mdm_server(server_id, self.access_token.value)
         include_keys= {
@@ -136,6 +149,7 @@ class Client:
             devices.extend(devices_dump)
         return devices
 
+    @ensure_valid_token
     def get_device_server_assignment(self, device_id: str) -> dict:
         response = self.abm.get_device_server_assignment(device_id, self.access_token.value)
         include_keys = {
