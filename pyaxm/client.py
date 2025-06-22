@@ -1,7 +1,3 @@
-
-import datetime as dt
-from pyaxm.models import OrgDevice
-from pyaxm import abm_requests
 import datetime as dt
 import Cryptodome.PublicKey.ECC as ECC
 from authlib.jose import jwt
@@ -9,6 +5,8 @@ import uuid
 import os
 import json
 import time
+from pyaxm.abm_requests import ABMRequests
+from functools import wraps
 
 ABM_CLIENT_ID = os.environ['AXM_CLIENT_ID']
 ABM_KEY_ID = os.environ['AXM_KEY_ID']
@@ -16,46 +14,63 @@ ABM_FOLDER = os.path.join(os.path.expanduser('~'), '.config', 'pyaxm')
 KEY_PATH = os.path.join(ABM_FOLDER, 'key.pem')
 TOKEN_PATH = os.path.join(ABM_FOLDER, 'token.json')
 
-class AccessToken():
-    def __init__(self):
-        self.value = None
-        self.expires_at = None
-        self.assertion = None
+class AccessToken:
+    def __init__(self, value, expires_at):
+        self.value = value
+        self.expires_at = expires_at
 
-        # Try reading from cache
+def ensure_valid_token(method):
+    @wraps(method)
+    def wrapper(self, *args, **kwargs):
+        if self.access_token.expires_at <= dt.datetime.now(dt.timezone.utc):
+            self.access_token = self._get_or_refresh_token()
+        return method(self, *args, **kwargs)
+    return wrapper
+
+class Client:
+    def __init__(self):
+        self.abm = ABMRequests()
+        self.access_token = self._get_or_refresh_token()
+
+    def _get_or_refresh_token(self):
         try:
             with open(TOKEN_PATH, 'r') as f:
                 cache = json.load(f)
-            
             if cache['expires_at'] > time.time():
-                self.value = cache['access_token']
-                self.expires_at = dt.datetime.fromtimestamp(cache['expires_at'], dt.timezone.utc)  # Convert timestamp back to datetime
-                return
+                value = cache['access_token']
+                expires_at = dt.datetime.fromtimestamp(cache['expires_at'], dt.timezone.utc)
+                return AccessToken(value, expires_at)
         except (FileNotFoundError, json.JSONDecodeError, KeyError):
             pass
-        
-        # Get new token
-        self.generate_assertion()
-        self.generate_token()
-
-        # Write to cache
-        cache_data = {
-            'access_token': self.value,
-            'expires_at': (self.expires_at).timestamp()  # Store as a timestamp
+        # Generate new token
+        assertion = self._generate_assertion()
+        token_data = {
+            "grant_type": "client_credentials",
+            "client_id": ABM_CLIENT_ID,
+            "client_assertion_type": 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
+            "client_assertion": assertion,
+            "scope": 'business.api'
         }
-
+        token = self.abm.get_access_token(token_data)
+        expires_in = token.get('expires_in')
+        issued_at = dt.datetime.now(dt.timezone.utc)
+        expires_at = issued_at + dt.timedelta(seconds=expires_in)
+        value = token.get('access_token')
+        cache_data = {
+            'access_token': value,
+            'expires_at': expires_at.timestamp()
+        }
         with open(TOKEN_PATH, 'w') as f:
             json.dump(cache_data, f)
-    
-    def generate_assertion(self):
-        issued_at = int(dt.datetime.now(dt.timezone.utc).timestamp())
-        expires_at = issued_at + 60 # expires in 1 minute
+        return AccessToken(value, expires_at)
 
+    def _generate_assertion(self):
+        issued_at = int(dt.datetime.now(dt.timezone.utc).timestamp())
+        expires_at = issued_at + 60
         headers = {
             "alg": "ES256",
             "kid": ABM_KEY_ID
         }
-
         payload = {
             "sub": ABM_CLIENT_ID,
             "aud": 'https://account.apple.com/auth/oauth2/v2/token',
@@ -64,62 +79,33 @@ class AccessToken():
             "jti": str(uuid.uuid4()),
             "iss": ABM_CLIENT_ID
         }
-
         with open(KEY_PATH, 'rt') as f:
             private_key = ECC.import_key(f.read())
-
-        self.assertion = jwt.encode(
+        assertion = jwt.encode(
             header=headers,
             payload=payload,
             key=private_key.export_key(format='PEM')
         ).decode("utf-8")
+        return assertion
 
-    def generate_token(self):     
-        data = {
-            "grant_type": "client_credentials",
-            "client_id": ABM_CLIENT_ID,
-            "client_assertion_type": 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-            "client_assertion": self.assertion,
-            "scope": 'business.api'
-        }
-
-        token = abm_requests.get_access_token(data)        
-        expires_in = token.get('expires_in')
-        issued_at = dt.datetime.now(dt.timezone.utc)
-
-        self.expires_at = issued_at + dt.timedelta(seconds=expires_in)
-        self.value = token.get('access_token')
-
-class Client:
-    def __init__(self):
-        self.access_token = AccessToken()
-    
+    @ensure_valid_token
     def list_devices(self) -> list[dict]:
-        '''Returns a list of devices in the organization.
-        '''
-        response = abm_requests.list_devices(self.access_token.value)
+        response = self.abm.list_devices(self.access_token.value)
         devices = [data.attributes.model_dump() for data in response.data]
-
         while response.links.next:
             next_page = response.links.next
-            response = abm_requests.list_devices(self.access_token.value, next=next_page)
+            response = self.abm.list_devices(self.access_token.value, next=next_page)
             devices.extend([data.attributes.model_dump() for data in response.data])
-            
         return devices
 
+    @ensure_valid_token
     def get_device(self, device_id: str) -> dict:
-        '''Returns a device's details as a dict.
-        '''
-        response = abm_requests.get_device(device_id, self.access_token.value)
+        response = self.abm.get_device(device_id, self.access_token.value)
         return response.data.attributes.model_dump()
-        
-
-    ## - MDM servers
+    
+    @ensure_valid_token
     def list_mdm_servers(self) -> list[dict]:
-        '''Returns a list of MDM servers with their names and IDs.
-        TODO: Add pagination as currently it only returns the first page of results.
-        '''
-        response = abm_requests.list_mdm_servers(self.access_token.value)
+        response = self.abm.list_mdm_servers(self.access_token.value)
         exclude_keys = {
             'data': {
                 '__all__': {
@@ -131,7 +117,6 @@ class Client:
             'links': True,
             'meta': True,
         }
-
         data = response.model_dump(exclude=exclude_keys)
         data = [
             {
@@ -142,14 +127,11 @@ class Client:
                 'updatedDateTime': server.attributes.updatedDateTime
             } for server in response.data
         ]
-
         return data
 
-    ## - list_devices_in_mdm_server
+    @ensure_valid_token
     def list_devices_in_mdm_server(self, server_id: str) -> list[str]:
-        '''Returns a list of device IDs (serials) in the specified MDM server.
-        '''
-        response = abm_requests.list_devices_in_mdm_server(server_id, self.access_token.value)
+        response = self.abm.list_devices_in_mdm_server(server_id, self.access_token.value)
         include_keys= {
             'data': {
                 '__all__': {
@@ -157,25 +139,20 @@ class Client:
                 }
             }
         }
-
         devices = response.model_dump(include=include_keys)
         devices = [device for device in devices['data']]
-
         while response.links.next:
             next_page = response.links.next
-            response = abm_requests.list_devices_in_mdm_server(server_id, self.access_token.value, next=next_page)
+            response = self.abm.list_devices_in_mdm_server(server_id, self.access_token.value, next=next_page)
             devices_dump = response.model_dump(include=include_keys)
             devices_dump = [device for device in devices_dump['data']]
             devices.extend(devices_dump)
-
         return devices
 
+    @ensure_valid_token
     def get_device_server_assignment(self, device_id: str) -> dict:
-        '''Returns a device's assigned mdm server as a dict.
-        '''
-        response = abm_requests.get_device_server_assignment(device_id, self.access_token.value)
+        response = self.abm.get_device_server_assignment(device_id, self.access_token.value)
         include_keys = {
             'id'
         }
-
         return response.data.model_dump(include=include_keys)

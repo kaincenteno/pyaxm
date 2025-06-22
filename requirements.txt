@@ -3,3 +3,4 @@ requests
 Authlib
 pycryptodomex
 pandas
+typer
