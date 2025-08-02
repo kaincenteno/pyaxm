@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, AnyHttpUrl
 from typing import List, Optional
 from enum import Enum
 
@@ -7,7 +7,7 @@ class OrgDeviceActivityType(Enum):
     UNASSIGN_DEVICES = "UNASSIGN_DEVICES"
 
 class DocumentLinks(BaseModel):
-    self: str # uri-reference to the current document
+    self: AnyHttpUrl
 
 class Parameter(BaseModel):
     parameter: str
@@ -16,17 +16,17 @@ class JsonPointer(BaseModel):
     pointer: str
 
 class ResourceLinks(BaseModel):
-    self: Optional[str] # uri-reference. Link to the resource
+    self: Optional[AnyHttpUrl]
 
 class RelationshipLinks(BaseModel):
     include: Optional[str] = None # is this really a field? #### TODO: confirm
-    related: Optional[str] = None # uri-reference
-    self: Optional[str] # uri-reference
+    related: Optional[AnyHttpUrl] = None
+    self: Optional[AnyHttpUrl]
 
 class PagedDocumentLinks(BaseModel):
-    first: Optional[str] = None # uri-reference
-    next: Optional[str] = None # uri-reference
-    self: str # uri-reference
+    first: Optional[AnyHttpUrl] = None
+    next: Optional[AnyHttpUrl] = None
+    self: AnyHttpUrl
 
 # OrgDevice
 class OrgDevice(BaseModel):
@@ -181,11 +181,11 @@ class ErrorLinks(BaseModel):
         class Meta(BaseModel):
             source: Optional[str]
         
-        href: Optional[str] # uri-reference
+        href: Optional[AnyHttpUrl]
         meta: Optional[Meta]
     
-    about: Optional[str] # uri-reference
-    associated: Optional[str|Associated] # uri-reference or Associated object
+    about: Optional[AnyHttpUrl]
+    associated: Optional[AnyHttpUrl|Associated]
 
 class ErrorResponse(BaseModel):
     class Errors(BaseModel):
