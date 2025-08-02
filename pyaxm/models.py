@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, AnyHttpUrl
+from pydantic import BaseModel, ConfigDict, AnyHttpUrl, AwareDatetime
 from typing import List, Optional
 from enum import Enum
 
@@ -31,14 +31,14 @@ class PagedDocumentLinks(BaseModel):
 # OrgDevice
 class OrgDevice(BaseModel):
     class Attributes(BaseModel):
-        addedToOrgDateTime: Optional[str] # ISO 8601 date-time
+        addedToOrgDateTime: Optional[AwareDatetime]
         color: Optional[str]
         deviceCapacity: Optional[str]
         deviceModel: Optional[str]
         eid: Optional[str]
         imei: Optional[List[str]]
         meid: Optional[List[str]]
-        orderDateTime: Optional[str] # ISO 8601 date-time
+        orderDateTime: Optional[AwareDatetime]
         orderNumber: Optional[str]
         partNumber: Optional[str]
         productFamily: Optional[str]
@@ -47,7 +47,7 @@ class OrgDevice(BaseModel):
         purchaseSourceId: Optional[str]
         serialNumber: Optional[str]
         status: Optional[str]
-        updatedDateTime: Optional[str] # ISO 8601 date-time
+        updatedDateTime: Optional[AwareDatetime]
     
     class Relationships(BaseModel):
         class AssignedServer(BaseModel):
@@ -71,10 +71,10 @@ class OrgDeviceAssignedServerLinkageResponse(BaseModel):
 
 class OrgDeviceActivity(BaseModel):
     class Attributes(BaseModel):
-        createdDateTime: Optional[str] # ISO 8601 date-time
+        createdDateTime: Optional[AwareDatetime]
         status: Optional[str]
         subStatus: Optional[str]
-        completedDateTime: Optional[str] # ISO 8601 date-time
+        completedDateTime: Optional[AwareDatetime]
         downloadUrl: Optional[str]
 
     attributes: Optional[Attributes]
@@ -121,10 +121,10 @@ class PagingInformation(BaseModel):
 
 class MdmServer(BaseModel):
     class Attributes(BaseModel):
-        createdDateTime: Optional[str] # ISO 8601 date-time
+        createdDateTime: Optional[AwareDatetime]
         serverName: Optional[str]
         serverType: Optional[str]
-        updatedDateTime: Optional[str] # ISO 8601 date-time
+        updatedDateTime: Optional[AwareDatetime]
     
     class Relationships(BaseModel):
         class Devices(BaseModel):
