@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict, AnyHttpUrl, AwareDatetime
-from typing import List, Optional
+from typing import List, Optional, Literal
 from enum import Enum
 
 class OrgDeviceActivityType(Enum):
@@ -16,12 +16,12 @@ class JsonPointer(BaseModel):
     pointer: str
 
 class ResourceLinks(BaseModel):
-    self: Optional[AnyHttpUrl]
+    self: Optional[AnyHttpUrl] = None
 
 class RelationshipLinks(BaseModel):
-    include: Optional[str] = None # is this really a field? #### TODO: confirm
+    include: Optional[AnyHttpUrl] = None
     related: Optional[AnyHttpUrl] = None
-    self: Optional[AnyHttpUrl]
+    self: Optional[AnyHttpUrl] = None
 
 class PagedDocumentLinks(BaseModel):
     first: Optional[AnyHttpUrl] = None
@@ -31,23 +31,25 @@ class PagedDocumentLinks(BaseModel):
 # OrgDevice
 class OrgDevice(BaseModel):
     class Attributes(BaseModel):
-        addedToOrgDateTime: Optional[AwareDatetime]
-        color: Optional[str]
-        deviceCapacity: Optional[str]
-        deviceModel: Optional[str]
-        eid: Optional[str]
-        imei: Optional[List[str]]
-        meid: Optional[List[str]]
-        orderDateTime: Optional[AwareDatetime]
-        orderNumber: Optional[str]
-        partNumber: Optional[str]
-        productFamily: Optional[str]
-        productType: Optional[str]
-        purchaseSourceType: Optional[str]
-        purchaseSourceId: Optional[str]
-        serialNumber: Optional[str]
-        status: Optional[str]
-        updatedDateTime: Optional[AwareDatetime]
+        addedToOrgDateTime: Optional[AwareDatetime] = None
+        color: Optional[str] = None
+        deviceCapacity: Optional[str] = None
+        deviceModel: Optional[str] = None
+        eid: Optional[str] = None
+        imei: Optional[List[str]] = None
+        meid: Optional[List[str]] = None
+        wifiMacAddress: Optional[str] = None
+        bluetoothMacAddress: Optional[str] = None
+        orderDateTime: Optional[AwareDatetime] = None
+        orderNumber: Optional[str] = None
+        partNumber: Optional[str] = None
+        productFamily: Optional[str] = None
+        productType: Optional[str] = None
+        purchaseSourceType: Optional[str] = None
+        purchaseSourceId: Optional[str] = None
+        serialNumber: Optional[str] = None
+        status: Optional[str] = None
+        updatedDateTime: Optional[AwareDatetime] = None
     
     class Relationships(BaseModel):
         class AssignedServer(BaseModel):
@@ -59,28 +61,28 @@ class OrgDevice(BaseModel):
     id: str
     links: Optional[ResourceLinks]
     relationships: Optional[Relationships]
-    type: str
+    type: Literal['orgDevices']
 
 class OrgDeviceAssignedServerLinkageResponse(BaseModel):
     class Data(BaseModel):
         id: str
-        type: str
+        type: Literal['mdmServers']
 
     data: Data
     links: DocumentLinks
 
 class OrgDeviceActivity(BaseModel):
     class Attributes(BaseModel):
-        createdDateTime: Optional[AwareDatetime]
-        status: Optional[str]
-        subStatus: Optional[str]
-        completedDateTime: Optional[AwareDatetime]
-        downloadUrl: Optional[str]
+        createdDateTime: Optional[AwareDatetime] = None
+        status: Optional[str] = None
+        subStatus: Optional[str] = None
+        completedDateTime: Optional[AwareDatetime] = None
+        downloadUrl: Optional[str] = None
 
     attributes: Optional[Attributes]
     id: str
     links: Optional[ResourceLinks]
-    type: str
+    type: Literal['orgDeviceActivities']
 
 class OrgDeviceActivityCreateRequest(BaseModel):
     class Data(BaseModel):
@@ -92,14 +94,14 @@ class OrgDeviceActivityCreateRequest(BaseModel):
             class Devices(BaseModel):
                 class Data(BaseModel):
                     id: str
-                    type: str
+                    type: Literal['orgDevices']
                 
                 data: List[Data]
             
             class MdmServer(BaseModel):
                 class Data(BaseModel):
                     id: str
-                    type: str
+                    type: Literal['mdmServers']
 
                 data: Data
 
@@ -108,49 +110,40 @@ class OrgDeviceActivityCreateRequest(BaseModel):
 
         attributes: Attributes
         relationships: Relationships
-        type: str
+        type: Literal['orgDeviceActivities']
     data: Data
 
 class PagingInformation(BaseModel):
     class Paging(BaseModel):
         limit: int
-        nextCursor: Optional[str] = None # also weird not being passed
-        total: Optional[int] = None # also not being passed
+        nextCursor: Optional[str] = None
+        total: Optional[int] = None
 
     paging: Paging
 
 class MdmServer(BaseModel):
     class Attributes(BaseModel):
-        createdDateTime: Optional[AwareDatetime]
-        serverName: Optional[str]
-        serverType: Optional[str]
-        updatedDateTime: Optional[AwareDatetime]
+        createdDateTime: Optional[AwareDatetime] = None
+        serverName: Optional[str] = None
+        serverType: Optional[str] = None
+        updatedDateTime: Optional[AwareDatetime] = None
     
     class Relationships(BaseModel):
         class Devices(BaseModel):
             class Data(BaseModel):
                 id: str
-                type: str
+                type: Literal['orgDevices']
 
-            data: Optional[List[Data]] = None # weird also not being returned
+            data: Optional[List[Data]] = None
             links: Optional[RelationshipLinks]
-            meta: Optional[PagingInformation] = None # also weird
+            meta: Optional[PagingInformation] = None
 
         devices: Optional[Devices]
 
     attributes: Optional[Attributes]
     id: str
     relationships: Optional[Relationships]
-    type: str
-
-class MdmServerLinkageResponse(BaseModel):
-    class Data(BaseModel):
-        id: str
-        type: str
-
-    data: Data
-    links: PagedDocumentLinks
-    meta: Optional[PagingInformation]
+    type: Literal['mdmServers']
 
 class OrgDeviceActivityResponse(BaseModel):
     data: OrgDeviceActivity
@@ -158,7 +151,7 @@ class OrgDeviceActivityResponse(BaseModel):
 
 class MdmServersResponse(BaseModel):
     data: List[MdmServer]
-    included: Optional[List[OrgDevice]] = None # weird not being returned
+    included: Optional[List[OrgDevice]] = None
     links: PagedDocumentLinks
     meta: Optional[PagingInformation]
 
@@ -179,13 +172,13 @@ class OrgDeviceResponse(BaseModel):
 class ErrorLinks(BaseModel):
     class Associated(BaseModel):
         class Meta(BaseModel):
-            source: Optional[str]
+            source: Optional[str] = None
         
-        href: Optional[AnyHttpUrl]
-        meta: Optional[Meta]
+        href: Optional[AnyHttpUrl] = None
+        meta: Optional[Meta] = None
     
-    about: Optional[AnyHttpUrl]
-    associated: Optional[AnyHttpUrl|Associated]
+    about: Optional[AnyHttpUrl] = None
+    associated: Optional[AnyHttpUrl|Associated] = None
 
 class ErrorResponse(BaseModel):
     class Errors(BaseModel):
@@ -195,7 +188,7 @@ class ErrorResponse(BaseModel):
 
         code: str
         detail: str
-        id: Optional[str]
+        id: Optional[str] = None
         source: Optional[JsonPointer|Parameter] = None
         status: str
         title: str
@@ -207,7 +200,7 @@ class ErrorResponse(BaseModel):
 class MdmServerDevicesLinkagesResponse(BaseModel):
     class Data(BaseModel):
         id: str
-        type: str
+        type: Literal['orgDevices']
 
     data: List[Data]
     links: PagedDocumentLinks
