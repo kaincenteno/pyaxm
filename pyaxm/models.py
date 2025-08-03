@@ -53,14 +53,14 @@ class OrgDevice(BaseModel):
     
     class Relationships(BaseModel):
         class AssignedServer(BaseModel):
-            links: Optional[RelationshipLinks]
+            links: Optional[RelationshipLinks] = None
 
-        assignedServer: Optional[AssignedServer]
+        assignedServer: Optional[AssignedServer] = None
 
-    attributes: Optional[Attributes]
+    attributes: Optional[Attributes] = None
     id: str
-    links: Optional[ResourceLinks]
-    relationships: Optional[Relationships]
+    links: Optional[ResourceLinks] = None
+    relationships: Optional[Relationships] = None
     type: Literal['orgDevices']
 
 class OrgDeviceAssignedServerLinkageResponse(BaseModel):
@@ -79,9 +79,9 @@ class OrgDeviceActivity(BaseModel):
         completedDateTime: Optional[AwareDatetime] = None
         downloadUrl: Optional[str] = None
 
-    attributes: Optional[Attributes]
+    attributes: Optional[Attributes] = None
     id: str
-    links: Optional[ResourceLinks]
+    links: Optional[ResourceLinks] = None
     type: Literal['orgDeviceActivities']
 
 class OrgDeviceActivityCreateRequest(BaseModel):
@@ -135,14 +135,14 @@ class MdmServer(BaseModel):
                 type: Literal['orgDevices']
 
             data: Optional[List[Data]] = None
-            links: Optional[RelationshipLinks]
+            links: Optional[RelationshipLinks] = None
             meta: Optional[PagingInformation] = None
 
-        devices: Optional[Devices]
+        devices: Optional[Devices] = None
 
-    attributes: Optional[Attributes]
+    attributes: Optional[Attributes] = None
     id: str
-    relationships: Optional[Relationships]
+    relationships: Optional[Relationships] = None
     type: Literal['mdmServers']
 
 class OrgDeviceActivityResponse(BaseModel):
@@ -153,17 +153,17 @@ class MdmServersResponse(BaseModel):
     data: List[MdmServer]
     included: Optional[List[OrgDevice]] = None
     links: PagedDocumentLinks
-    meta: Optional[PagingInformation]
+    meta: Optional[PagingInformation] = None
 
 class MdmServerResponse(BaseModel):
     data: MdmServer
-    included: Optional[List[OrgDevice]]
+    included: Optional[List[OrgDevice]] = None
     links: DocumentLinks
 
 class OrgDevicesResponse(BaseModel):
     data: List[OrgDevice]
     links: PagedDocumentLinks
-    meta: Optional[PagingInformation]
+    meta: Optional[PagingInformation] = None
 
 class OrgDeviceResponse(BaseModel):
     data: OrgDevice
@@ -195,7 +195,7 @@ class ErrorResponse(BaseModel):
         links: Optional[ErrorLinks] = None
         meta: Optional[Meta] = None
     
-    errors: Optional[List[Errors]]
+    errors: Optional[List[Errors]] = None
 
 class MdmServerDevicesLinkagesResponse(BaseModel):
     class Data(BaseModel):
@@ -204,4 +204,4 @@ class MdmServerDevicesLinkagesResponse(BaseModel):
 
     data: List[Data]
     links: PagedDocumentLinks
-    meta: Optional[PagingInformation]
+    meta: Optional[PagingInformation] = None
