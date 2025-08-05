@@ -26,8 +26,8 @@ to the client like so:
 ```from pyaxm.client import Client
 
 axm_client = Client(
-    abm_client_id="CLIENT_ID",
-    abm_key_id="KEY_ID",
+    axm_client_id="CLIENT_ID",
+    axm_key_id="KEY_ID",
     key_path="PRIVATE_KEY",
     token_path="TOKEN_PATH"
 )
