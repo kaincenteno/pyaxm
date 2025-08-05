@@ -8,11 +8,7 @@ import time
 from pyaxm.abm_requests import ABMRequests
 from functools import wraps
 
-ABM_CLIENT_ID = os.environ['AXM_CLIENT_ID']
-ABM_KEY_ID = os.environ['AXM_KEY_ID']
 ABM_FOLDER = os.path.join(os.path.expanduser('~'), '.config', 'pyaxm')
-KEY_PATH = os.path.join(ABM_FOLDER, 'key.pem')
-TOKEN_PATH = os.path.join(ABM_FOLDER, 'token.json')
 
 class AccessToken:
     def __init__(self, value, expires_at):
@@ -28,13 +24,19 @@ def ensure_valid_token(method):
     return wrapper
 
 class Client:
-    def __init__(self):
+    def __init__(self, abm_client_id=None, abm_key_id=None, key_path=None, token_path=None):
+        # Set configuration from arguments or fall back to environment variables/defaults
+        self.abm_client_id = abm_client_id or os.environ.get('AXM_CLIENT_ID')
+        self.abm_key_id = abm_key_id or os.environ.get('AXM_KEY_ID')
+        self.key_path = key_path or os.path.join(ABM_FOLDER, 'key.pem')
+        self.token_path = token_path or os.path.join(ABM_FOLDER, 'token.json')
+    	
         self.abm = ABMRequests()
         self.access_token = self._get_or_refresh_token()
 
     def _get_or_refresh_token(self):
         try:
-            with open(TOKEN_PATH, 'r') as f:
+            with open(self.token_path, 'r') as f:
                 cache = json.load(f)
             if cache['expires_at'] > time.time():
                 value = cache['access_token']
@@ -46,7 +48,7 @@ class Client:
         assertion = self._generate_assertion()
         token_data = {
             "grant_type": "client_credentials",
-            "client_id": ABM_CLIENT_ID,
+            "client_id": self.abm_client_id,
             "client_assertion_type": 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
             "client_assertion": assertion,
             "scope": 'business.api'
@@ -60,7 +62,7 @@ class Client:
             'access_token': value,
             'expires_at': expires_at.timestamp()
         }
-        with open(TOKEN_PATH, 'w') as f:
+        with open(self.token_path, 'w') as f:
             json.dump(cache_data, f)
         return AccessToken(value, expires_at)
 
@@ -69,17 +71,17 @@ class Client:
         expires_at = issued_at + 60
         headers = {
             "alg": "ES256",
-            "kid": ABM_KEY_ID
+            "kid": self.abm_key_id
         }
         payload = {
-            "sub": ABM_CLIENT_ID,
+            "sub": self.abm_client_id,
             "aud": 'https://account.apple.com/auth/oauth2/v2/token',
             "iat": issued_at,
             "exp": expires_at,
             "jti": str(uuid.uuid4()),
-            "iss": ABM_CLIENT_ID
+            "iss": self.abm_client_id
         }
-        with open(KEY_PATH, 'rt') as f:
+        with open(self.key_path, 'rt') as f:
             private_key = ECC.import_key(f.read())
         assertion = jwt.encode(
             header=headers,
