@@ -32,9 +32,6 @@ axm_client = Client(
     token_path="TOKEN_PATH"
 )
 
-The token path is the location where the access token will be stored.
-```
-
 ## Installation:
 `pip install pyaxm`
 
