@@ -4,7 +4,9 @@ A CLI command is also included, `pyacm-cli`.
 
 https://developer.apple.com/documentation/applebusinessmanagerapi
 
-## Setup:
+## Setup
+If you want to setup the authentication using envvars, do the following:
+
 You will need to setup 2 environmental variables that are provided
 when creating the private key in ABM:
 
@@ -17,6 +19,21 @@ This location will be used to store a cached access_token that can be reused
 until it expires. While testing I have experienced that requesting too many
 access tokens will result in a response with status code 400 when 
 trying to get a new token.
+
+Otherwise you will have to pass the client id, key id and private key as arguments
+to the client like so:
+
+```from pyaxm.client import Client
+
+axm_client = Client(
+    axm_client_id="CLIENT_ID",
+    axm_key_id="KEY_ID",
+    key_path="PRIVATE_KEY",
+    token_path="TOKEN_PATH"
+)
+
+The token path is the location where the access token will be stored.
+```
 
 ## Installation:
 `pip install pyaxm`
