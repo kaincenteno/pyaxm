@@ -23,7 +23,8 @@ trying to get a new token.
 Otherwise you will have to pass the client id, key id and private key as arguments
 to the client like so:
 
-```from pyaxm.client import Client
+```python
+from pyaxm.client import Client
 
 axm_client = Client(
     axm_client_id="CLIENT_ID",
