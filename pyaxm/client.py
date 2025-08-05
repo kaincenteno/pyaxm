@@ -8,8 +8,6 @@ import time
 from pyaxm.abm_requests import ABMRequests
 from functools import wraps
 
-ABM_FOLDER = os.path.join(os.path.expanduser('~'), '.config', 'pyaxm')
-
 class AccessToken:
     def __init__(self, value, expires_at):
         self.value = value
@@ -26,6 +24,7 @@ def ensure_valid_token(method):
 class Client:
     def __init__(self, abm_client_id=None, abm_key_id=None, key_path=None, token_path=None):
         # Set configuration from arguments or fall back to environment variables/defaults
+        ABM_FOLDER = os.path.join(os.path.expanduser('~'), '.config', 'pyaxm')
         self.abm_client_id = abm_client_id or os.environ.get('AXM_CLIENT_ID')
         self.abm_key_id = abm_key_id or os.environ.get('AXM_KEY_ID')
         self.key_path = key_path or os.path.join(ABM_FOLDER, 'key.pem')
