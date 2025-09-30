@@ -23,11 +23,13 @@ def exponential_backoff(retries=5, backoff_factor=2):
                 try:
                     return func(*args, **kwargs)
                 except requests.exceptions.RequestException as e:
-                    if attempt < retries - 1:
+                    if e.response.status_code == HTTPStatus.TOO_MANY_REQUESTS:
+                        wait_time = int(e.response.headers.get('Retry-After', 60))
+                    elif attempt < retries - 1:
                         wait_time = backoff_factor ** attempt
-                        time.sleep(wait_time)
                     else:
                         raise e
+                    time.sleep(wait_time)
         return wrapper
     return decorator
 
