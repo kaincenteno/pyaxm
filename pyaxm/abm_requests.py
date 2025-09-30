@@ -141,8 +141,6 @@ class ABMRequests:
 
         response = self.session.get(url, headers=self._auth_headers(access_token))
 
-        # ABM has been returning 500, this is a workaround to retry 2 times
-        # before raising an error.
         if response.status_code == HTTPStatus.OK:
             return MdmServerDevicesLinkagesResponse.model_validate(response.json())
         else:
