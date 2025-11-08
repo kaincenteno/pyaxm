@@ -1,4 +1,5 @@
 import requests
+from http import HTTPStatus
 from pyaxm.models import (
     OrgDeviceResponse,
     MdmServersResponse,
@@ -22,11 +23,13 @@ def exponential_backoff(retries=5, backoff_factor=2):
                 try:
                     return func(*args, **kwargs)
                 except requests.exceptions.RequestException as e:
-                    if attempt < retries - 1:
+                    if e.response.status_code == HTTPStatus.TOO_MANY_REQUESTS:
+                        wait_time = int(e.response.headers.get('Retry-After', 60))
+                    elif attempt < retries - 1:
                         wait_time = backoff_factor ** attempt
-                        time.sleep(wait_time)
                     else:
                         raise e
+                    time.sleep(wait_time)
         return wrapper
     return decorator
 
@@ -80,7 +83,7 @@ class ABMRequests:
 
         response = self.session.get(url, headers=self._auth_headers(access_token))
 
-        if response.status_code == 200:
+        if response.status_code == HTTPStatus.OK:
             return OrgDevicesResponse.model_validate(response.json())
         else:
             response.raise_for_status()
@@ -98,9 +101,9 @@ class ABMRequests:
         url = f'https://api-business.apple.com/v1/orgDevices/{device_id}'
         response = self.session.get(url, headers=self._auth_headers(access_token))
         
-        if response.status_code == 200:
+        if response.status_code == HTTPStatus.OK:
             return OrgDeviceResponse.model_validate(response.json())
-        elif response.status_code == 404:
+        elif response.status_code == HTTPStatus.NOT_FOUND:
             raise DeviceError(response.json()['errors'][0]['title'])
         else:
             response.raise_for_status()
@@ -116,7 +119,7 @@ class ABMRequests:
         url = 'https://api-business.apple.com/v1/mdmServers'    
         response = self.session.get(url, headers=self._auth_headers(access_token))
         
-        if response.status_code == 200:
+        if response.status_code == HTTPStatus.OK:
             return MdmServersResponse.model_validate(response.json())
         else:
             response.raise_for_status()
@@ -138,9 +141,7 @@ class ABMRequests:
 
         response = self.session.get(url, headers=self._auth_headers(access_token))
 
-        # ABM has been returning 500, this is a workaround to retry 2 times
-        # before raising an error.
-        if response.status_code == 200:
+        if response.status_code == HTTPStatus.OK:
             return MdmServerDevicesLinkagesResponse.model_validate(response.json())
         else:
             response.raise_for_status()
@@ -152,9 +153,9 @@ class ABMRequests:
         url = f'https://api-business.apple.com/v1/orgDevices/{device_id}/relationships/assignedServer'
         response = self.session.get(url, headers=self._auth_headers(access_token))
         
-        if response.status_code == 200:
+        if response.status_code == HTTPStatus.OK:
             return OrgDeviceAssignedServerLinkageResponse.model_validate(response.json())
-        elif response.status_code == 404:
+        elif response.status_code == HTTPStatus.NOT_FOUND:
             raise DeviceError(response.json()['errors'][0]['title'])
         else:
             response.raise_for_status()
@@ -206,7 +207,7 @@ class ABMRequests:
             json=request_data.model_dump()
         )
 
-        if response.status_code == 201:
+        if response.status_code == HTTPStatus.CREATED:
             return OrgDeviceActivityResponse.model_validate(response.json())
         else:
             response.raise_for_status()
@@ -223,7 +224,7 @@ class ABMRequests:
         url = f'https://api-business.apple.com/v1/orgDeviceActivities/{activity_id}'
         response = self.session.get(url, headers=self._auth_headers(access_token))
 
-        if response.status_code == 200:
+        if response.status_code == HTTPStatus.OK:
             return OrgDeviceActivityResponse.model_validate(response.json())
         else:
             response.raise_for_status()
