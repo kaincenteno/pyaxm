@@ -42,6 +42,7 @@ class PagedDocumentLinks(BaseModel):
 class OrgDevice(BaseModel):
     class Attributes(BaseModel):
         addedToOrgDateTime: Optional[AwareDatetime] = None
+        releasedFromOrgDateTime: Optional[AwareDatetime] = None
         color: Optional[str] = None
         deviceCapacity: Optional[str] = None
         deviceModel: Optional[str] = None
@@ -64,8 +65,12 @@ class OrgDevice(BaseModel):
     class Relationships(BaseModel):
         class AssignedServer(BaseModel):
             links: Optional[RelationshipLinks] = None
+        
+        class AppleCareCoverage(BaseModel):
+            links: Optional[RelationshipLinks] = None
 
         assignedServer: Optional[AssignedServer] = None
+        appleCareCoverage: Optional[AppleCareCoverage] = None
 
     attributes: Optional[Attributes] = None
     id: str
@@ -178,6 +183,7 @@ class OrgDevicesResponse(BaseModel):
 class OrgDeviceResponse(BaseModel):
     data: OrgDevice
     links: DocumentLinks
+    meta: Optional[PagingInformation] = None
 
 class ErrorLinks(BaseModel):
     class Associated(BaseModel):
