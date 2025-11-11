@@ -23,7 +23,8 @@ trying to get a new token.
 Otherwise you will have to pass the client id, key id and private key as arguments
 to the client like so:
 
-```from pyaxm.client import Client
+```python
+from pyaxm.client import Client
 
 axm_client = Client(
     axm_client_id="CLIENT_ID",
@@ -31,9 +32,8 @@ axm_client = Client(
     key_path="PRIVATE_KEY",
     token_path="TOKEN_PATH"
 )
-
-The token path is the location where the access token will be stored.
 ```
+The token path is the location where the access token will be stored.
 
 ## Installation:
 `pip install pyaxm`
@@ -56,11 +56,13 @@ Usage: pyaxm-cli COMMAND [ARGS]
 
 `unassign-device` -> Unassign a device from an MDM server.
 
+`apple-care-coverage` -> Get AppleCare warranty coverage information for a device.
 The data returned is on CSV format so you can store it as a CSV if needed
 
 # Client:
 Example usage:
-```from pyaxm.client import Client
+```python
+from pyaxm.client import Client
 
 axm_client = Client()
 
@@ -85,6 +87,9 @@ assignment_result = axm_client.assign_unassign_device_to_mdm_server(
     server_id="MDM_SERVER_ID",
     action="ASSIGN_DEVICES"|"UNASSIGN_DEVICES"
 )
+
+apple_care_coverage = axm_client.get_apple_care_coverage(device_id='SERIAL_NUMBER')
+print(apple_care_coverage)
 ```
 
 ## Issues:
