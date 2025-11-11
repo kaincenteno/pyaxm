@@ -8,6 +8,7 @@ from pyaxm.models import (
     OrgDeviceAssignedServerLinkageResponse,
     OrgDeviceActivityCreateRequest,
     OrgDeviceActivityResponse,
+    AppleCareCoverageResponse,
 )
 import time
 from functools import wraps
@@ -226,5 +227,35 @@ class ABMRequests:
 
         if response.status_code == HTTPStatus.OK:
             return OrgDeviceActivityResponse.model_validate(response.json())
+        else:
+            response.raise_for_status()
+    
+    @exponential_backoff(retries=5, backoff_factor=2)
+    def get_apple_care_coverage(self, device_id: str, access_token: str, fields: list = None) -> AppleCareCoverageResponse:
+        """
+        Get AppleCare coverage information for a specific device.
+        
+        :param device_id: The ID of the device (serial number).
+        :param access_token: The access token for authentication.
+        :param fields: Optional list of fields to return, e.g., ['status', 'startDateTime', 'endDateTime']
+        :return: An AppleCareCoverageResponse object containing the coverage information.
+        """
+        url = f'https://api-business.apple.com/v1/orgDevices/{device_id}/appleCareCoverage'
+        
+        # Add fields parameter if specified
+        params = {}
+        if fields:
+            params['fields[appleCareCoverage]'] = ','.join(fields)
+        
+        response = self.session.get(
+            url, 
+            headers=self._auth_headers(access_token),
+            params=params
+        )
+        
+        if response.status_code == HTTPStatus.OK:
+            return AppleCareCoverageResponse.model_validate(response.json())
+        elif response.status_code == HTTPStatus.NOT_FOUND:
+            raise DeviceError(response.json()['errors'][0]['title'])
         else:
             response.raise_for_status()
