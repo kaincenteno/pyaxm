@@ -6,6 +6,16 @@ class OrgDeviceActivityType(Enum):
     ASSIGN_DEVICES = "ASSIGN_DEVICES"
     UNASSIGN_DEVICES = "UNASSIGN_DEVICES"
 
+class AppleCareCoverageStatus(str, Enum):
+    ACTIVE = "ACTIVE"
+    INACTIVE = "INACTIVE"
+
+class AppleCareCoveragePaymentType(str, Enum):
+    ABE_SUBSCRIPTION = "ABE_SUBSCRIPTION"
+    PAID_UP_FRONT = "PAID_UP_FRONT"
+    SUBSCRIPTION = "SUBSCRIPTION"
+    NONE = "NONE"
+
 class DocumentLinks(BaseModel):
     self: AnyHttpUrl
 
@@ -204,4 +214,26 @@ class MdmServerDevicesLinkagesResponse(BaseModel):
 
     data: List[Data]
     links: PagedDocumentLinks
+    meta: Optional[PagingInformation] = None
+
+class AppleCareCoverage(BaseModel):
+    class Attributes(BaseModel):
+        status: Optional[AppleCareCoverageStatus] = None
+        paymentType: Optional[AppleCareCoveragePaymentType] = None
+        description: Optional[str] = None
+        startDateTime: Optional[AwareDatetime] = None
+        endDateTime: Optional[AwareDatetime] = None
+        isRenewable: Optional[bool] = None
+        isCanceled: Optional[bool] = None
+        contractCancelDateTime: Optional[AwareDatetime] = None
+        agreementNumber: Optional[str] = None
+
+    attributes: Optional[Attributes] = None
+    id: str
+    type: Literal['appleCareCoverage']
+    model_config = ConfigDict(use_enum_values=True)
+
+class AppleCareCoverageResponse(BaseModel):
+    data: List[AppleCareCoverage]
+    links: DocumentLinks
     meta: Optional[PagingInformation] = None

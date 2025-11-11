@@ -103,7 +103,12 @@ class Client:
     def get_device(self, device_id: str) -> dict:
         response = self.abm.get_device(device_id, self.access_token.value)
         return response.data.attributes.model_dump()
-    
+
+    @ensure_valid_token
+    def get_apple_care_coverage(self, device_id: str) -> list[dict]:
+        response = self.abm.get_apple_care_coverage(device_id, self.access_token.value)
+        return [data.attributes.model_dump() for data in response.data]
+
     @ensure_valid_token
     def list_mdm_servers(self) -> list[dict]:
         response = self.abm.list_mdm_servers(self.access_token.value)

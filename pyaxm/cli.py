@@ -23,6 +23,17 @@ def device(device_id: str):
         typer.echo(e)
 
 @app.command()
+def apple_care_coverage(device_id: str):
+    """Get AppleCare coverage for a device."""
+    try:
+        # client.get_apple_care_coverage already returns a list, so use it directly
+        coverage_data = client.get_apple_care_coverage(device_id)
+        df = pd.DataFrame(coverage_data)
+        df.to_csv(sys.stdout, index=False)
+    except DeviceError as e:
+        typer.echo(e)
+
+@app.command()
 def mdm_servers():
     """List all MDM servers."""
     df = pd.DataFrame(client.list_mdm_servers())
