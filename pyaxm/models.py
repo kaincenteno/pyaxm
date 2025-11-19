@@ -1,20 +1,9 @@
 from pydantic import BaseModel, ConfigDict, AnyHttpUrl, AwareDatetime
-from typing import List, Optional, Literal
-from enum import Enum
+from typing import List, Optional, Literal, TypeAlias
 
-class OrgDeviceActivityType(Enum):
-    ASSIGN_DEVICES = "ASSIGN_DEVICES"
-    UNASSIGN_DEVICES = "UNASSIGN_DEVICES"
-
-class AppleCareCoverageStatus(str, Enum):
-    ACTIVE = "ACTIVE"
-    INACTIVE = "INACTIVE"
-
-class AppleCareCoveragePaymentType(str, Enum):
-    ABE_SUBSCRIPTION = "ABE_SUBSCRIPTION"
-    PAID_UP_FRONT = "PAID_UP_FRONT"
-    SUBSCRIPTION = "SUBSCRIPTION"
-    NONE = "NONE"
+OrgDeviceActivityType: TypeAlias = str
+AppleCareCoverageStatus: TypeAlias = str
+AppleCareCoveragePaymentType: TypeAlias = str
 
 class DocumentLinks(BaseModel):
     self: AnyHttpUrl
@@ -103,7 +92,6 @@ class OrgDeviceActivityCreateRequest(BaseModel):
     class Data(BaseModel):
         class Attributes(BaseModel):
             activityType: OrgDeviceActivityType
-            model_config = ConfigDict(use_enum_values=True)
         
         class Relationships(BaseModel):
             class Devices(BaseModel):
@@ -237,7 +225,6 @@ class AppleCareCoverage(BaseModel):
     attributes: Optional[Attributes] = None
     id: str
     type: Literal['appleCareCoverage']
-    model_config = ConfigDict(use_enum_values=True)
 
 class AppleCareCoverageResponse(BaseModel):
     data: List[AppleCareCoverage]
