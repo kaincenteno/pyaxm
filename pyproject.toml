@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pyaxm"
-version = "2025.11.11"
+version = "2025.11.19"
 description = "Query Apple Business Manager using Python"
 requires-python = ">=3.10"
 dependencies = [
