@@ -6,6 +6,14 @@ import os
 import json
 import time
 from pyaxm.abm_requests import ABMRequests
+from pyaxm.models import (
+    OrgDevice,
+    AppleCareCoverage,
+    MdmServer,
+    MdmServerDevicesLinkagesResponse,
+    OrgDeviceAssignedServerLinkageResponse,
+    OrgDeviceActivity
+)
 from functools import wraps
 
 class AccessToken:
@@ -90,89 +98,58 @@ class Client:
         return assertion
 
     @ensure_valid_token
-    def list_devices(self) -> list[dict]:
+    def list_devices(self) -> list[OrgDevice]:
         response = self.abm.list_devices(self.access_token.value)
-        devices = [data.attributes.model_dump() for data in response.data]
+        devices = response.data
+        
         while response.links.next:
             next_page = response.links.next
             response = self.abm.list_devices(self.access_token.value, next=next_page)
-            devices.extend([data.attributes.model_dump() for data in response.data])
+            devices.extend(response.data)
+        
         return devices
 
     @ensure_valid_token
-    def get_device(self, device_id: str) -> dict:
+    def get_device(self, device_id: str) -> OrgDevice:
         response = self.abm.get_device(device_id, self.access_token.value)
-        return response.data.attributes.model_dump()
+        return response.data
 
     @ensure_valid_token
-    def get_apple_care_coverage(self, device_id: str) -> list[dict]:
+    def get_apple_care_coverage(self, device_id: str) -> list[AppleCareCoverage]:
         response = self.abm.get_apple_care_coverage(device_id, self.access_token.value)
-        return [data.attributes.model_dump() for data in response.data]
+        return response.data
 
     @ensure_valid_token
-    def list_mdm_servers(self) -> list[dict]:
+    def list_mdm_servers(self) -> list[MdmServer]:
         response = self.abm.list_mdm_servers(self.access_token.value)
-        exclude_keys = {
-            'data': {
-                '__all__': {
-                    'relationships',
-                    'type'
-                },
-            },
-            'included': True,
-            'links': True,
-            'meta': True,
-        }
-        data = response.model_dump(exclude=exclude_keys)
-        data = [
-            {
-                'id': server.id,
-                'createdDateTime': server.attributes.createdDateTime,
-                'serverName': server.attributes.serverName,
-                'serverType': server.attributes.serverType,
-                'updatedDateTime': server.attributes.updatedDateTime
-            } for server in response.data
-        ]
-        return data
+        return response.data
 
     @ensure_valid_token
-    def list_devices_in_mdm_server(self, server_id: str) -> list[str]:
+    def list_devices_in_mdm_server(self, server_id: str) -> list[MdmServerDevicesLinkagesResponse.Data]:
         response = self.abm.list_devices_in_mdm_server(server_id, self.access_token.value)
-        include_keys= {
-            'data': {
-                '__all__': {
-                    'id'
-                }
-            }
-        }
-        devices = response.model_dump(include=include_keys)
-        devices = [device for device in devices['data']]
+        devices = response.data
         while response.links.next:
             next_page = response.links.next
             response = self.abm.list_devices_in_mdm_server(server_id, self.access_token.value, next=next_page)
-            devices_dump = response.model_dump(include=include_keys)
-            devices_dump = [device for device in devices_dump['data']]
-            devices.extend(devices_dump)
+            devices.extend(response.data)
         return devices
 
     @ensure_valid_token
-    def get_device_server_assignment(self, device_id: str) -> dict:
+    def get_device_server_assignment(self, device_id: str) -> OrgDeviceAssignedServerLinkageResponse.Data:
         response = self.abm.get_device_server_assignment(device_id, self.access_token.value)
-        include_keys = {
-            'id'
-        }
-        return response.data.model_dump(include=include_keys)
+        return response.data
 
     @ensure_valid_token
     def assign_unassign_device_to_mdm_server(
         self, device_id: str, server_id: str, action: str
-    ) -> None:
+    ) -> OrgDeviceActivity:
         """
         Assign or unassign a device to/from an MDM server.
 
         :param device_id: The ID of the device.
         :param server_id: The ID of the MDM server.
         :param action: 'assign' or 'unassign'.
+        :return: The completed OrgDeviceActivity.
         """
         unassign_response = self.abm.assign_unassign_device_to_mdm_server(
             device_id, server_id, action, self.access_token.value
@@ -186,4 +163,4 @@ class Client:
             retry += 1
             activity_response = self.abm.get_device_activity(unassign_response.data.id, self.access_token.value)
 
-        return activity_response.data.attributes.model_dump()
+        return activity_response.data
