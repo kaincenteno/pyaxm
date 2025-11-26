@@ -2,7 +2,6 @@ import sys
 import pandas as pd
 import typer
 from pyaxm.client import Client
-from pyaxm.abm_requests import DeviceError
 
 app = typer.Typer()
 client = Client()
@@ -10,60 +9,76 @@ client = Client()
 @app.command()
 def devices():
     """List all devices in the organization."""
-    df = pd.DataFrame(client.list_devices())
+    devices = client.list_devices()
+    devices_data = []
+    for device in devices:
+        device_info = {'id': device.id}
+        device_info.update(device.attributes.model_dump())
+        devices_data.append(device_info)
+    df = pd.DataFrame(devices_data)
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
 def device(device_id: str):
     """Get a device by ID."""
-    try:
-        df = pd.DataFrame([client.get_device(device_id)])
-        df.to_csv(sys.stdout, index=False)
-    except DeviceError as e:
-        typer.echo(e)
+    device = client.get_device(device_id)
+    device_info = {'id': device.id}
+    device_info.update(device.attributes.model_dump())
+    df = pd.DataFrame([device_info])
+    df.to_csv(sys.stdout, index=False)
 
 @app.command()
 def apple_care_coverage(device_id: str):
     """Get AppleCare coverage for a device."""
-    try:
-        # client.get_apple_care_coverage already returns a list, so use it directly
-        coverage_data = client.get_apple_care_coverage(device_id)
-        df = pd.DataFrame(coverage_data)
-        df.to_csv(sys.stdout, index=False)
-    except DeviceError as e:
-        typer.echo(e)
+    coverage = client.get_apple_care_coverage(device_id)
+    coverage_data = [item.attributes.model_dump() for item in coverage]
+    df = pd.DataFrame(coverage_data)
+    df.to_csv(sys.stdout, index=False)
 
 @app.command()
 def mdm_servers():
     """List all MDM servers."""
-    df = pd.DataFrame(client.list_mdm_servers())
+    servers = client.list_mdm_servers()
+    servers_data = []
+    for server in servers:
+        server_info = {'id': server.id}
+        server_info.update(server.attributes.model_dump())
+        servers_data.append(server_info)
+    df = pd.DataFrame(servers_data)
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
 def mdm_server(server_id: str):
     """List devices in a specific MDM server."""
-    df = pd.DataFrame(client.list_devices_in_mdm_server(server_id))
+    devices = client.list_devices_in_mdm_server(server_id)
+    devices_data = [{'id': device.id} for device in devices]
+    df = pd.DataFrame(devices_data)
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
 def mdm_server_assigned(device_id: str):
     """Get the server assignment for a device."""
-    try:
-        df = pd.DataFrame([client.get_device_server_assignment(device_id)])
-        df.to_csv(sys.stdout, index=False)
-    except DeviceError as e:
-        typer.echo(e)
+    server_assignment = client.get_device_server_assignment(device_id)
+    assignment_info = {'id': server_assignment.id}
+    df = pd.DataFrame([assignment_info])
+    df.to_csv(sys.stdout, index=False)
 
 @app.command()
 def assign_device(device_id: str, server_id: str):
     """Assign a device to an MDM server."""
-    df = pd.DataFrame([client.assign_unassign_device_to_mdm_server(device_id, server_id, 'ASSIGN_DEVICES')])
+    activity = client.assign_unassign_device_to_mdm_server(device_id, server_id, 'ASSIGN_DEVICES')
+    activity_data = {'id': activity.id}
+    activity_data.update(activity.attributes.model_dump())
+    df = pd.DataFrame([activity_data])
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
 def unassign_device(device_id: str, server_id: str):
     """Unassign a device from an MDM server."""
-    df = pd.DataFrame([client.assign_unassign_device_to_mdm_server(device_id, server_id, 'UNASSIGN_DEVICES')])
+    activity = client.assign_unassign_device_to_mdm_server(device_id, server_id, 'UNASSIGN_DEVICES')
+    activity_data = {'id': activity.id}
+    activity_data.update(activity.attributes.model_dump())
+    df = pd.DataFrame([activity_data])
     df.to_csv(sys.stdout, index=False)
 
 if __name__ == "__main__":
