@@ -14,6 +14,7 @@ from pyaxm.models import (
     OrgDeviceAssignedServerLinkageResponse,
     OrgDeviceActivity
 )
+from typing import List
 from functools import wraps
 
 class AccessToken:
@@ -141,18 +142,18 @@ class Client:
 
     @ensure_valid_token
     def assign_unassign_device_to_mdm_server(
-        self, device_id: str, server_id: str, action: str
+        self, device_ids: List[str], server_id: str, action: str
     ) -> OrgDeviceActivity:
         """
-        Assign or unassign a device to/from an MDM server.
+        Assign or unassign one or more devices to/from an MDM server.
 
-        :param device_id: The ID of the device.
+        :param device_ids: List of device IDs.
         :param server_id: The ID of the MDM server.
         :param action: 'assign' or 'unassign'.
         :return: The completed OrgDeviceActivity.
         """
         unassign_response = self.abm.assign_unassign_device_to_mdm_server(
-            device_id, server_id, action, self.access_token.value
+            device_ids, server_id, action, self.access_token.value
         )
 
         # use the ID to check the status until it is complete
