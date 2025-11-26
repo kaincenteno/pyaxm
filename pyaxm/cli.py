@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import typer
+from typing import List
 from pyaxm.client import Client
 
 app = typer.Typer()
@@ -64,8 +65,8 @@ def mdm_server_assigned(device_id: str):
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
-def assign_device(device_id: str, server_id: str):
-    """Assign a device to an MDM server."""
+def assign_device(device_id: List[str], server_id: str):
+    """Assign one or more devices to an MDM server."""
     activity = client.assign_unassign_device_to_mdm_server(device_id, server_id, 'ASSIGN_DEVICES')
     activity_data = {'id': activity.id}
     activity_data.update(activity.attributes.model_dump())
@@ -73,8 +74,8 @@ def assign_device(device_id: str, server_id: str):
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
-def unassign_device(device_id: str, server_id: str):
-    """Unassign a device from an MDM server."""
+def unassign_device(device_id: List[str], server_id: str):
+    """Unassign one or more devices from an MDM server."""
     activity = client.assign_unassign_device_to_mdm_server(device_id, server_id, 'UNASSIGN_DEVICES')
     activity_data = {'id': activity.id}
     activity_data.update(activity.attributes.model_dump())

@@ -1,5 +1,6 @@
 import requests
 from http import HTTPStatus
+from typing import List
 from pyaxm.models import (
     OrgDeviceResponse,
     MdmServersResponse,
@@ -163,17 +164,25 @@ class ABMRequests:
 
     @exponential_backoff(retries=5, backoff_factor=2)
     def assign_unassign_device_to_mdm_server(
-        self, device_id: str, server_id: str, action: str, access_token: str
+        self, device_ids: List[str], server_id: str, action: str, access_token: str
     ) -> OrgDeviceActivityResponse:
         """
-        Assign or unassign a device to/from an MDM server.
+        Assign or unassign one or more devices to/from an MDM server.
 
-        :param device_id: The ID of the device.
+        :param device_ids: List of device IDs.
         :param server_id: The ID of the MDM server.
         :param action: 'assign' or 'unassign'.
         :param access_token: The access token for authentication.
         """
         url = f'https://api-business.apple.com/v1/orgDeviceActivities'
+        
+        devices_data = [
+            {
+                "id": did,
+                "type": "orgDevices"
+            }
+            for did in device_ids
+        ]
 
         request_data = {
             "data": {
@@ -183,12 +192,7 @@ class ABMRequests:
             },
             "relationships": {
                 "devices": {
-                "data": [
-                    {
-                    "id": device_id,
-                    "type": "orgDevices"
-                    }
-                ]
+                    "data": devices_data
                 },
                 "mdmServer": {
                 "data": {
