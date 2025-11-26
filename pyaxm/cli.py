@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import typer
+from typing_extensions import Annotated
 from typing import List
 from pyaxm.client import Client
 
@@ -20,7 +21,7 @@ def devices():
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
-def device(device_id: str):
+def device(device_id: Annotated[str, typer.Argument()]):
     """Get a device by ID."""
     device = client.get_device(device_id)
     device_info = {'id': device.id}
@@ -29,7 +30,7 @@ def device(device_id: str):
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
-def apple_care_coverage(device_id: str):
+def apple_care_coverage(device_id: Annotated[str, typer.Argument()]):
     """Get AppleCare coverage for a device."""
     coverage = client.get_apple_care_coverage(device_id)
     coverage_data = [item.attributes.model_dump() for item in coverage]
@@ -49,7 +50,7 @@ def mdm_servers():
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
-def mdm_server(server_id: str):
+def mdm_server(server_id: Annotated[str, typer.Argument()]):
     """List devices in a specific MDM server."""
     devices = client.list_devices_in_mdm_server(server_id)
     devices_data = [{'id': device.id} for device in devices]
@@ -57,7 +58,7 @@ def mdm_server(server_id: str):
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
-def mdm_server_assigned(device_id: str):
+def mdm_server_assigned(device_id: Annotated[str, typer.Argument()]):
     """Get the server assignment for a device."""
     server_assignment = client.get_device_server_assignment(device_id)
     assignment_info = {'id': server_assignment.id}
@@ -65,7 +66,7 @@ def mdm_server_assigned(device_id: str):
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
-def assign_device(device_id: List[str], server_id: str):
+def assign_device(device_id: Annotated[List[str], typer.Argument()], server_id: Annotated[str, typer.Argument()]):
     """Assign one or more devices to an MDM server."""
     activity = client.assign_unassign_device_to_mdm_server(device_id, server_id, 'ASSIGN_DEVICES')
     activity_data = {'id': activity.id}
@@ -74,7 +75,7 @@ def assign_device(device_id: List[str], server_id: str):
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
-def unassign_device(device_id: List[str], server_id: str):
+def unassign_device(device_id: Annotated[List[str], typer.Argument()], server_id: Annotated[str, typer.Argument()]):
     """Unassign one or more devices from an MDM server."""
     activity = client.assign_unassign_device_to_mdm_server(device_id, server_id, 'UNASSIGN_DEVICES')
     activity_data = {'id': activity.id}

@@ -39,25 +39,9 @@ The token path is the location where the access token will be stored.
 `pip install pyaxm`
 
 ## CLI:
-Usage: pyaxm-cli COMMAND [ARGS]
+A command-line interface (CLI) tool called `pyaxm-cli` is included for easy access to the API.
 
-### Commands
-`devices` -> List all devices in the organization.
-
-`device` -> Get a device by ID.
-
-`mdm-servers` -> List all MDM servers.
-
-`mdm-server` -> List devices in a specific MDM server.
-
-`mdm-server-assigned` -> Get the server assignment for a device.
-
-`assign-device` -> Assign a device to an MDM server.
-
-`unassign-device` -> Unassign a device from an MDM server.
-
-`apple-care-coverage` -> Get AppleCare warranty coverage information for a device.
-The data returned is on CSV format so you can store it as a CSV if needed
+For detailed usage instructions, available commands, options, and examples, please refer to the [CLI documentation](docs/cli.md).
 
 # Client:
 Example usage:
