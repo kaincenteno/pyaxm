@@ -41,7 +41,19 @@ The token path is the location where the access token will be stored.
 ## CLI:
 A command-line interface (CLI) tool called `pyaxm-cli` is included for easy access to the API.
 
-For detailed usage instructions, available commands, options, and examples, please refer to the [CLI documentation](docs/cli.md).
+### Overview
+The CLI provides a convenient way to interact with the Apple Business Manager API directly from your terminal. It includes commands for managing devices, MDM servers, and retrieving device information.
+
+### Detailed Documentation
+For comprehensive documentation of all available commands, options, and usage examples, please refer to the [CLI documentation](docs/cli.md).
+
+### Updating Documentation
+The CLI documentation is automatically generated from the code. To update it after making changes to the CLI implementation, run:
+```bash
+typer pyaxm.cli utils docs --name pyaxm-cli --output docs/cli.md
+```
+
+A GitHub workflow automatically checks that the documentation stays in sync.
 
 # Client:
 Example usage:

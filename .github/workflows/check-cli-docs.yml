@@ -1,0 +1,60 @@
+name: Check CLI Documentation
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  check-docs:
+    name: Verify CLI documentation is up-to-date
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Generate current CLI documentation
+        run: |
+          typer pyaxm.cli utils docs --name pyaxm-cli --output /tmp/cli.md
+
+      - name: Compare with existing documentation
+        id: compare_docs
+        run: |
+          # Calculate MD5 hashes for both files
+          OLD_HASH=$(md5sum docs/cli.md | awk '{ print $1 }')
+          NEW_HASH=$(md5sum /tmp/cli.md | awk '{ print $1 }')
+          
+          # Compare hashes
+          if [ "$OLD_HASH" != "$NEW_HASH" ]; then
+            echo "docs_outdated=true" >> $GITHUB_OUTPUT
+            exit 1
+          else
+            echo "CLI documentation is up-to-date."
+            echo "Hash: $OLD_HASH"
+            echo "docs_outdated=false" >> $GITHUB_OUTPUT
+          fi
+          
+      - name: Comment on PR if documentation is outdated
+        if: ${{ steps.compare_docs.outputs.docs_outdated == 'true' }}
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const pull_request_number = context.issue.number;
+            const comment = 'CLI Documentation Check Failed;
+            
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pull_request_number,
+              body: comment
+            });

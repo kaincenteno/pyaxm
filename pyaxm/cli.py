@@ -6,11 +6,11 @@ from typing import List
 from pyaxm.client import Client
 
 app = typer.Typer()
-client = Client()
 
 @app.command()
 def devices():
     """List all devices in the organization."""
+    client = Client()
     devices = client.list_devices()
     devices_data = []
     for device in devices:
@@ -23,6 +23,7 @@ def devices():
 @app.command()
 def device(device_id: Annotated[str, typer.Argument()]):
     """Get a device by ID."""
+    client = Client()
     device = client.get_device(device_id)
     device_info = {'id': device.id}
     device_info.update(device.attributes.model_dump())
@@ -32,6 +33,7 @@ def device(device_id: Annotated[str, typer.Argument()]):
 @app.command()
 def apple_care_coverage(device_id: Annotated[str, typer.Argument()]):
     """Get AppleCare coverage for a device."""
+    client = Client()
     coverage = client.get_apple_care_coverage(device_id)
     coverage_data = [item.attributes.model_dump() for item in coverage]
     df = pd.DataFrame(coverage_data)
@@ -40,6 +42,7 @@ def apple_care_coverage(device_id: Annotated[str, typer.Argument()]):
 @app.command()
 def mdm_servers():
     """List all MDM servers."""
+    client = Client()
     servers = client.list_mdm_servers()
     servers_data = []
     for server in servers:
@@ -52,6 +55,7 @@ def mdm_servers():
 @app.command()
 def mdm_server(server_id: Annotated[str, typer.Argument()]):
     """List devices in a specific MDM server."""
+    client = Client()
     devices = client.list_devices_in_mdm_server(server_id)
     devices_data = [{'id': device.id} for device in devices]
     df = pd.DataFrame(devices_data)
@@ -60,6 +64,7 @@ def mdm_server(server_id: Annotated[str, typer.Argument()]):
 @app.command()
 def mdm_server_assigned(device_id: Annotated[str, typer.Argument()]):
     """Get the server assignment for a device."""
+    client = Client()
     server_assignment = client.get_device_server_assignment(device_id)
     assignment_info = {'id': server_assignment.id}
     df = pd.DataFrame([assignment_info])
@@ -68,6 +73,7 @@ def mdm_server_assigned(device_id: Annotated[str, typer.Argument()]):
 @app.command()
 def assign_device(device_id: Annotated[List[str], typer.Argument()], server_id: Annotated[str, typer.Argument()]):
     """Assign one or more devices to an MDM server."""
+    client = Client()
     activity = client.assign_unassign_device_to_mdm_server(device_id, server_id, 'ASSIGN_DEVICES')
     activity_data = {'id': activity.id}
     activity_data.update(activity.attributes.model_dump())
@@ -77,6 +83,7 @@ def assign_device(device_id: Annotated[List[str], typer.Argument()], server_id: 
 @app.command()
 def unassign_device(device_id: Annotated[List[str], typer.Argument()], server_id: Annotated[str, typer.Argument()]):
     """Unassign one or more devices from an MDM server."""
+    client = Client()
     activity = client.assign_unassign_device_to_mdm_server(device_id, server_id, 'UNASSIGN_DEVICES')
     activity_data = {'id': activity.id}
     activity_data.update(activity.attributes.model_dump())
