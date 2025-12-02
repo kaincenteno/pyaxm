@@ -4,6 +4,7 @@ import typer
 from typing_extensions import Annotated
 from typing import List
 from pyaxm.client import Client
+from pyaxm.utils import download_activity_csv
 
 app = typer.Typer()
 
@@ -80,6 +81,10 @@ def assign_device(device_id: Annotated[List[str], typer.Argument()], server_id: 
     df = pd.DataFrame([activity_data])
     df.to_csv(sys.stdout, index=False)
 
+    file_path = download_activity_csv(activity)
+    if file_path:
+        typer.echo(f"Report downloaded successfully to: {file_path}")
+
 @app.command()
 def unassign_device(device_id: Annotated[List[str], typer.Argument()], server_id: Annotated[str, typer.Argument()]):
     """Unassign one or more devices from an MDM server."""
@@ -89,6 +94,10 @@ def unassign_device(device_id: Annotated[List[str], typer.Argument()], server_id
     activity_data.update(activity.attributes.model_dump())
     df = pd.DataFrame([activity_data])
     df.to_csv(sys.stdout, index=False)
+    
+    file_path = download_activity_csv(activity)
+    if file_path:
+        typer.echo(f"Report downloaded successfully to: {file_path}")
 
 if __name__ == "__main__":
     app()
