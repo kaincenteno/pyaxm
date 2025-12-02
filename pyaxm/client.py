@@ -157,10 +157,12 @@ class Client:
         )
 
         # use the ID to check the status until it is complete
+        # Waits before the first check to prevent rate limitting
+        time.sleep(10)
         activity_response = self.abm.get_device_activity(unassign_response.data.id, self.access_token.value)
         retry = 0
-        while 'COMPLETED' not in activity_response.data.attributes.status and retry < 5:
-            time.sleep(2 ** retry)
+        while activity_response.data.attributes.status == 'IN_PROGRESS' and retry < 5:
+            time.sleep(10 * retry)
             retry += 1
             activity_response = self.abm.get_device_activity(unassign_response.data.id, self.access_token.value)
 
