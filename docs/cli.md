@@ -130,12 +130,12 @@ Assign one or more devices to an MDM server.
 **Usage**:
 
 ```console
-$ pyaxm-cli assign-device [OPTIONS] DEVICE_ID... SERVER_ID
+$ pyaxm-cli assign-device [OPTIONS] DEVICE_IDS... SERVER_ID
 ```
 
 **Arguments**:
 
-* `DEVICE_ID...`: [required]
+* `DEVICE_IDS...`: [required]
 * `SERVER_ID`: [required]
 
 **Options**:
@@ -149,12 +149,12 @@ Unassign one or more devices from an MDM server.
 **Usage**:
 
 ```console
-$ pyaxm-cli unassign-device [OPTIONS] DEVICE_ID... SERVER_ID
+$ pyaxm-cli unassign-device [OPTIONS] DEVICE_IDS... SERVER_ID
 ```
 
 **Arguments**:
 
-* `DEVICE_ID...`: [required]
+* `DEVICE_IDS...`: [required]
 * `SERVER_ID`: [required]
 
 **Options**:

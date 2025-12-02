@@ -79,10 +79,11 @@ device_assigned_server = axm_client.list_devices_in_mdm_server(device_id='SERIAL
 print(device_assigned_server)
 
 assignment_result = axm_client.assign_unassign_device_to_mdm_server(
-    device_id='SERIAL_NUMBER',
+    device_ids=['SERIAL_NUMBER', "ANOTHER_SERIAL_NUMBER"],
     server_id="MDM_SERVER_ID",
     action="ASSIGN_DEVICES"|"UNASSIGN_DEVICES"
 )
+print(assignment_result)
 
 apple_care_coverage = axm_client.get_apple_care_coverage(device_id='SERIAL_NUMBER')
 print(apple_care_coverage)
@@ -90,6 +91,5 @@ print(apple_care_coverage)
 
 ## Issues:
 * need to add tests
-* unassign, assign devices need to be able to pass more than 1 device
 
 This is still a work in progress

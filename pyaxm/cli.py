@@ -4,6 +4,7 @@ import typer
 from typing_extensions import Annotated
 from typing import List
 from pyaxm.client import Client
+from pyaxm.utils import download_activity_csv
 
 app = typer.Typer()
 
@@ -71,24 +72,32 @@ def mdm_server_assigned(device_id: Annotated[str, typer.Argument()]):
     df.to_csv(sys.stdout, index=False)
 
 @app.command()
-def assign_device(device_id: Annotated[List[str], typer.Argument()], server_id: Annotated[str, typer.Argument()]):
+def assign_device(device_ids: Annotated[List[str], typer.Argument()], server_id: Annotated[str, typer.Argument()]):
     """Assign one or more devices to an MDM server."""
     client = Client()
-    activity = client.assign_unassign_device_to_mdm_server(device_id, server_id, 'ASSIGN_DEVICES')
+    activity = client.assign_unassign_device_to_mdm_server(device_ids, server_id, 'ASSIGN_DEVICES')
     activity_data = {'id': activity.id}
     activity_data.update(activity.attributes.model_dump())
     df = pd.DataFrame([activity_data])
     df.to_csv(sys.stdout, index=False)
 
+    file_path = download_activity_csv(activity)
+    if file_path:
+        typer.echo(f"Report downloaded successfully to: {file_path}")
+
 @app.command()
-def unassign_device(device_id: Annotated[List[str], typer.Argument()], server_id: Annotated[str, typer.Argument()]):
+def unassign_device(device_ids: Annotated[List[str], typer.Argument()], server_id: Annotated[str, typer.Argument()]):
     """Unassign one or more devices from an MDM server."""
     client = Client()
-    activity = client.assign_unassign_device_to_mdm_server(device_id, server_id, 'UNASSIGN_DEVICES')
+    activity = client.assign_unassign_device_to_mdm_server(device_ids, server_id, 'UNASSIGN_DEVICES')
     activity_data = {'id': activity.id}
     activity_data.update(activity.attributes.model_dump())
     df = pd.DataFrame([activity_data])
     df.to_csv(sys.stdout, index=False)
+    
+    file_path = download_activity_csv(activity)
+    if file_path:
+        typer.echo(f"Report downloaded successfully to: {file_path}")
 
 if __name__ == "__main__":
     app()
