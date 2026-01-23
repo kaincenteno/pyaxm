@@ -38,8 +38,9 @@ class OrgDevice(BaseModel):
         eid: Optional[str] = None
         imei: Optional[List[str]] = None
         meid: Optional[List[str]] = None
-        wifiMacAddress: Optional[str] = None
-        bluetoothMacAddress: Optional[str] = None
+        wifiMacAddress: Optional[str] = None # Documentation says it's a list, but it's a string
+        bluetoothMacAddress: Optional[str] = None # Documentation says it's a list, but it's a string
+        ethernetMacAddress: Optional[List[str]] = None
         orderDateTime: Optional[AwareDatetime] = None
         orderNumber: Optional[str] = None
         partNumber: Optional[str] = None

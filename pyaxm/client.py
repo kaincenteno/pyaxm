@@ -141,29 +141,21 @@ class Client:
         return response.data
 
     @ensure_valid_token
-    def assign_unassign_device_to_mdm_server(
-        self, device_ids: List[str], server_id: str, action: str
-    ) -> OrgDeviceActivity:
-        """
-        Assign or unassign one or more devices to/from an MDM server.
-
-        :param device_ids: List of device IDs.
-        :param server_id: The ID of the MDM server.
-        :param action: 'assign' or 'unassign'.
-        :return: The completed OrgDeviceActivity.
-        """
-        unassign_response = self.abm.assign_unassign_device_to_mdm_server(
-            device_ids, server_id, action, self.access_token.value
-        )
-
-        # use the ID to check the status until it is complete
-        # Waits before the first check to prevent rate limitting
+    def _wait_for_device_activity_completion(self, activity_id: str) -> OrgDeviceActivity:
         time.sleep(10)
-        activity_response = self.abm.get_device_activity(unassign_response.data.id, self.access_token.value)
+        activity_response = self.abm.get_device_activity(activity_id, self.access_token.value)
         retry = 0
         while activity_response.data.attributes.status == 'IN_PROGRESS' and retry < 5:
             time.sleep(10 * retry)
             retry += 1
-            activity_response = self.abm.get_device_activity(unassign_response.data.id, self.access_token.value)
-
+            activity_response = self.abm.get_device_activity(activity_id, self.access_token.value)
         return activity_response.data
+
+    @ensure_valid_token
+    def assign_unassign_device_to_mdm_server(
+        self, device_ids: List[str], server_id: str, action: str
+    ) -> OrgDeviceActivity:
+        response = self.abm.assign_unassign_device_to_mdm_server(
+            device_ids, server_id, action, self.access_token.value
+        )
+        return self._wait_for_device_activity_completion(response.data.id)
