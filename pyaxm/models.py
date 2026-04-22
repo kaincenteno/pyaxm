@@ -38,8 +38,8 @@ class OrgDevice(BaseModel):
         eid: Optional[str] = None
         imei: Optional[List[str]] = None
         meid: Optional[List[str]] = None
-        wifiMacAddress: Optional[str] = None # Documentation says it's a list, but it's a string
-        bluetoothMacAddress: Optional[str] = None # Documentation says it's a list, but it's a string
+        wifiMacAddress: Optional[str] = None
+        bluetoothMacAddress: Optional[str] = None
         ethernetMacAddress: Optional[List[str]] = None
         orderDateTime: Optional[AwareDatetime] = None
         orderNumber: Optional[str] = None
@@ -51,6 +51,8 @@ class OrgDevice(BaseModel):
         serialNumber: Optional[str] = None
         status: Optional[str] = None
         updatedDateTime: Optional[AwareDatetime] = None
+        # releaserEntityType: Optional[str] = None Documented, but not returned
+        # releaserId: Optional[str] = None Documented but not returned
     
     class Relationships(BaseModel):
         class AssignedServer(BaseModel):
