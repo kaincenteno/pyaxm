@@ -10,6 +10,7 @@ from pyaxm.models import (
     OrgDeviceActivityCreateRequest,
     OrgDeviceActivityResponse,
     AppleCareCoverageResponse,
+    AuditEventsResponse,
 )
 import time
 from functools import wraps
@@ -107,6 +108,68 @@ class ABMRequests:
             return OrgDeviceResponse.model_validate(response.json())
         elif response.status_code == HTTPStatus.NOT_FOUND:
             raise DeviceError(response.json()['errors'][0]['title'])
+        else:
+            response.raise_for_status()
+
+    @exponential_backoff(retries=5, backoff_factor=2)
+    def get_audit_events(
+        self,
+        access_token: str,
+        start_timestamp: str,
+        end_timestamp: str,
+        actor_id: str = None,
+        subject_id: str = None,
+        event_type: str = None,
+        limit: int = None,
+        fields: List[str] = None,
+        cursor: str = None,
+        next: str = None,
+    ) -> AuditEventsResponse:
+        """
+        Get a list of audit events in an organization that satisfies the query criteria.
+
+        :param access_token: The access token for authentication.
+        :param start_timestamp: ISO8601 formatted start timestamp of query time range.
+        :param end_timestamp: ISO8601 formatted end timestamp of query time range.
+        :param actor_id: Id of actor of event.
+        :param subject_id: Id of subject of event.
+        :param event_type: Type of event.
+        :param limit: The number of included related resources to return. Maximum: 1000.
+        :param fields: Specific fields to return, e.g., ['eventDateTime', 'type'].
+        :param cursor: Opaque cursor for pagination.
+        :return: An AuditEventsResponse object containing the list of audit events.
+        """
+
+        if next:
+            url = next
+        else:
+            url = 'https://api-business.apple.com/v1/auditEvents'
+
+        params = {
+            'filter[startTimestamp]': start_timestamp,
+            'filter[endTimestamp]': end_timestamp,
+        }
+
+        if actor_id:
+            params['filter[actorId]'] = actor_id
+        if subject_id:
+            params['filter[subjectId]'] = subject_id
+        if event_type:
+            params['filter[type]'] = event_type
+        if limit:
+            params['limit'] = limit
+        if fields:
+            params['fields[auditEvents]'] = ','.join(fields)
+        if cursor:
+            params['cursor'] = cursor
+
+        response = self.session.get(
+            url,
+            headers=self._auth_headers(access_token),
+            params=None if next else params
+        )
+        if response.status_code == HTTPStatus.OK:
+            return AuditEventsResponse.model_validate(response.json())
         else:
             response.raise_for_status()
 

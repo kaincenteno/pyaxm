@@ -233,3 +233,27 @@ class AppleCareCoverageResponse(BaseModel):
     data: List[AppleCareCoverage]
     links: DocumentLinks
     meta: Optional[PagingInformation] = None
+
+class AuditEvent(BaseModel):
+    class Attributes(BaseModel):
+        model_config = ConfigDict(extra='allow') # Allow extra fields for polymorphic attributes
+        eventDateTime: Optional[AwareDatetime] = None
+        type: Optional[str] = None # This is the event type like DEVICE_ADDED_TO_ORG
+        category: Optional[str] = None
+        actorType: Optional[str] = None
+        actorId: Optional[str] = None
+        actorName: Optional[str] = None
+        subjectType: Optional[str] = None
+        subjectId: Optional[str] = None
+        subjectName: Optional[str] = None
+        outcome: Optional[str] = None
+        groupId: Optional[str] = None
+
+    attributes: Optional[Attributes] = None
+    id: str
+    type: Literal['auditEvents']
+
+class AuditEventsResponse(BaseModel):
+    data: List[AuditEvent]
+    links: PagedDocumentLinks
+    meta: Optional[PagingInformation] = None

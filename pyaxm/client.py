@@ -12,9 +12,10 @@ from pyaxm.models import (
     MdmServer,
     MdmServerDevicesLinkagesResponse,
     OrgDeviceAssignedServerLinkageResponse,
-    OrgDeviceActivity
+    OrgDeviceActivity,
+    AuditEvent
 )
-from typing import List
+from typing import List, Optional
 from functools import wraps
 
 class AccessToken:
@@ -124,6 +125,43 @@ class Client:
     def list_mdm_servers(self) -> list[MdmServer]:
         response = self.abm.list_mdm_servers(self.access_token.value)
         return response.data
+
+    @ensure_valid_token
+    def get_audit_events(
+        self,
+        start_timestamp: str,
+        end_timestamp: str,
+        actor_id: Optional[str] = None,
+        subject_id: Optional[str] = None,
+        event_type: Optional[str] = None,
+        limit: Optional[int] = None,
+        fields: Optional[List[str]] = None,
+        cursor: Optional[str] = None,
+    ) -> List[AuditEvent]:
+        response = self.abm.get_audit_events(
+            self.access_token.value,
+            start_timestamp,
+            end_timestamp,
+            actor_id,
+            subject_id,
+            event_type,
+            limit,
+            fields,
+            cursor
+        )
+        events = response.data
+        
+        while response.links.next:
+            next_page = response.links.next
+            response = self.abm.get_audit_events(
+                self.access_token.value,
+                start_timestamp,
+                end_timestamp,
+                next=next_page
+            )
+            events.extend(response.data)
+
+        return events
 
     @ensure_valid_token
     def list_devices_in_mdm_server(self, server_id: str) -> list[MdmServerDevicesLinkagesResponse.Data]:

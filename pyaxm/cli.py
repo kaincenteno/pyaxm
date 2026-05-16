@@ -2,7 +2,7 @@ import sys
 import pandas as pd
 import typer
 from typing_extensions import Annotated
-from typing import List
+from typing import List, Optional
 from pyaxm.client import Client
 from pyaxm.utils import download_activity_csv
 
@@ -98,6 +98,37 @@ def unassign_device(device_ids: Annotated[List[str], typer.Argument()], server_i
     file_path = download_activity_csv(activity)
     if file_path:
         typer.echo(f"Report downloaded successfully to: {file_path}")
+
+@app.command()
+def audit_events(
+    start_timestamp: Annotated[str, typer.Argument()],
+    end_timestamp: Annotated[str, typer.Argument()],
+    actor_id: Annotated[Optional[str], typer.Option("--actor-id", "-a")] = None,
+    subject_id: Annotated[Optional[str], typer.Option("--subject-id", "-s")] = None,
+    event_type: Annotated[Optional[str], typer.Option("--event-type", "-e")] = None,
+    limit: Annotated[Optional[int], typer.Option("--limit", "-l")] = None,
+    fields: Annotated[Optional[List[str]], typer.Option("--fields", "-f")] = None,
+    cursor: Annotated[Optional[str], typer.Option("--cursor", "-c")] = None,
+):
+    """Get a list of audit events."""
+    client = Client()
+    events = client.get_audit_events(
+        start_timestamp=start_timestamp,
+        end_timestamp=end_timestamp,
+        actor_id=actor_id,
+        subject_id=subject_id,
+        event_type=event_type,
+        limit=limit,
+        fields=fields,
+        cursor=cursor,
+    )
+    events_data = []
+    for event in events:
+        event_info = {'id': event.id}
+        event_info.update(event.attributes.model_dump())
+        events_data.append(event_info)
+    df = pd.DataFrame(events_data)
+    df.to_csv(sys.stdout, index=False)
 
 if __name__ == "__main__":
     app()

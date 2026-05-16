@@ -22,6 +22,7 @@ $ pyaxm-cli [OPTIONS] COMMAND [ARGS]...
 * `mdm-server-assigned`: Get the server assignment for a device.
 * `assign-device`: Assign one or more devices to an MDM server.
 * `unassign-device`: Unassign one or more devices from an MDM...
+* `audit-events`: Get a list of audit events.
 
 ## `pyaxm-cli devices`
 
@@ -159,4 +160,29 @@ $ pyaxm-cli unassign-device [OPTIONS] DEVICE_IDS... SERVER_ID
 
 **Options**:
 
+* `--help`: Show this message and exit.
+
+## `pyaxm-cli audit-events`
+
+Get a list of audit events.
+
+**Usage**:
+
+```console
+$ pyaxm-cli audit-events [OPTIONS] START_TIMESTAMP END_TIMESTAMP
+```
+
+**Arguments**:
+
+* `START_TIMESTAMP`: [required]
+* `END_TIMESTAMP`: [required]
+
+**Options**:
+
+* `-a, --actor-id TEXT`
+* `-s, --subject-id TEXT`
+* `-e, --event-type TEXT`
+* `-l, --limit INTEGER`
+* `-f, --fields TEXT`
+* `-c, --cursor TEXT`
 * `--help`: Show this message and exit.
