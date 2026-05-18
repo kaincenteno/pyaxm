@@ -1,5 +1,5 @@
-from pydantic import BaseModel, ConfigDict, AnyHttpUrl, AwareDatetime
-from typing import List, Optional, Literal, TypeAlias
+from pydantic import BaseModel, ConfigDict, AnyHttpUrl, AwareDatetime, Field
+from typing import Annotated, List, Optional, Literal, TypeAlias, Union
 
 OrgDeviceActivityType: TypeAlias = str
 AppleCareCoverageStatus: TypeAlias = str
@@ -234,22 +234,314 @@ class AppleCareCoverageResponse(BaseModel):
     links: DocumentLinks
     meta: Optional[PagingInformation] = None
 
-class AuditEvent(BaseModel):
-    class Attributes(BaseModel):
-        model_config = ConfigDict(extra='allow') # Allow extra fields for polymorphic attributes
-        eventDateTime: Optional[AwareDatetime] = None
-        type: Optional[str] = None # This is the event type like DEVICE_ADDED_TO_ORG
-        category: Optional[str] = None
-        actorType: Optional[str] = None
-        actorId: Optional[str] = None
-        actorName: Optional[str] = None
-        subjectType: Optional[str] = None
-        subjectId: Optional[str] = None
-        subjectName: Optional[str] = None
-        outcome: Optional[str] = None
-        groupId: Optional[str] = None
+class AuditEventCommonAttributes(BaseModel):
+    eventDateTime: Optional[AwareDatetime] = None
+    type: str
+    category: Optional[str] = None
+    actorType: Optional[str] = None
+    actorId: Optional[str] = None
+    actorName: Optional[str] = None
+    subjectType: Optional[str] = None
+    subjectId: Optional[str] = None
+    subjectName: Optional[str] = None
+    outcome: Optional[str] = None
+    groupId: Optional[str] = None
 
-    attributes: Optional[Attributes] = None
+# Audit event inner data objects
+
+class AuditEventAccountRoleLocation(BaseModel):
+    roleName: Optional[str] = None
+    locationUniqueIdentifier: Optional[str] = None
+
+class AuditEventAccountAdded(BaseModel):
+    pass
+
+class AuditEventAccountDeleted(BaseModel):
+    pass
+
+class AuditEventAccountRoleLocationChanged(BaseModel):
+    accountRoleLocationList: Optional[List[AuditEventAccountRoleLocation]] = None
+
+class AuditEventApiAccountCreatedWithKey(BaseModel):
+    keyId: Optional[str] = None
+
+class AuditEventApiAccountCreatedWithoutKey(BaseModel):
+    pass
+
+class AuditEventApiAccountDeleted(BaseModel):
+    pass
+
+class AuditEventApiAccountKeyGenerated(BaseModel):
+    keyId: Optional[str] = None
+
+class AuditEventApiAccountKeyRevoked(BaseModel):
+    keyId: Optional[str] = None
+
+class AuditEventApiAccountNameChanged(BaseModel):
+    newName: Optional[str] = None
+
+class AuditEventApiAccountRoleLocationChanged(BaseModel):
+    apiAccountRoleLocationList: Optional[List[AuditEventAccountRoleLocation]] = None
+
+class AuditEventCollectionCreated(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+class AuditEventCollectionDeleted(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+class AuditEventCollectionUpdated(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+class AuditEventConfigSettingsCreated(BaseModel):
+    configType: Optional[str] = None
+    configId: Optional[str] = None
+    configVersion: Optional[str] = None
+
+class AuditEventConfigSettingsDeleted(BaseModel):
+    configType: Optional[str] = None
+    configId: Optional[str] = None
+    configVersion: Optional[str] = None
+
+class AuditEventConfigSettingsUpdated(BaseModel):
+    configType: Optional[str] = None
+    configId: Optional[str] = None
+    configVersion: Optional[str] = None
+
+class AuditEventDeviceAddedToOrg(BaseModel):
+    serialNumber: Optional[str] = None
+    purchaseSourceType: Optional[str] = None
+    purchaseSourceId: Optional[str] = None
+
+class AuditEventDeviceAssignedToServer(BaseModel):
+    serialNumber: Optional[str] = None
+    targetServerName: Optional[str] = None
+
+class AuditEventDeviceIsErased(BaseModel):
+    pass
+
+class AuditEventDeviceRemovedFromOrg(BaseModel):
+    serialNumber: Optional[str] = None
+    releaseEntityId: Optional[str] = None
+    releaseEntityType: Optional[str] = None
+
+class AuditEventDeviceUnassignedFromServer(BaseModel):
+    serialNumber: Optional[str] = None
+
+class AuditEventDomainAdded(BaseModel):
+    pass
+
+class AuditEventDomainRemoved(BaseModel):
+    pass
+
+class AuditEventDomainVerified(BaseModel):
+    pass
+
+class AuditEventExternalAccountAssociated(BaseModel):
+    pass
+
+class AuditEventExternalAccountDisassociated(BaseModel):
+    pass
+
+class AuditEventSubjectHasAppleCarePurchaseAdded(BaseModel):
+    subscriptionId: Optional[str] = None
+
+class AuditEventSubjectHasAppleCarePurchaseRemoved(BaseModel):
+    subscriptionId: Optional[str] = None
+
+class AuditEventSubjectHasICloudStoragePurchaseAdded(BaseModel):
+    subscriptionId: Optional[str] = None
+
+class AuditEventSubjectHasICloudStoragePurchaseRemoved(BaseModel):
+    subscriptionId: Optional[str] = None
+
+class AuditEventSubscriptionCreated(BaseModel):
+    planCaption: Optional[str] = None
+
+class AuditEventSubscriptionDeleted(BaseModel):
+    planCaption: Optional[str] = None
+
+class AuditEventSubscriptionUpdated(BaseModel):
+    planCaption: Optional[str] = None
+
+# AuditEvent *Attributes - Inherited from AuditEventCommonAttributes
+
+class AuditEventAccountAddedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataAccountAdded']
+    eventDataAccountAdded: Optional[AuditEventAccountAdded] = None
+
+class AuditEventAccountDeletedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataAccountDeleted']
+    eventDataAccountDeleted: Optional[AuditEventAccountDeleted] = None
+
+class AuditEventAccountRoleLocationChangedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataAccountRoleLocationChanged']
+    eventDataAccountRoleLocationChanged: Optional[AuditEventAccountRoleLocationChanged] = None
+
+class AuditEventApiAccountCreatedWithKeyAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataApiAccountCreatedWithKey']
+    eventDataApiAccountCreatedWithKey: Optional[AuditEventApiAccountCreatedWithKey] = None
+
+class AuditEventApiAccountCreatedWithoutKeyAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataApiAccountCreatedWithoutKey']
+    eventDataApiAccountCreatedWithoutKey: Optional[AuditEventApiAccountCreatedWithoutKey] = None
+
+class AuditEventApiAccountDeletedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataApiAccountDeleted']
+    eventDataApiAccountDeleted: Optional[AuditEventApiAccountDeleted] = None
+
+class AuditEventApiAccountKeyGeneratedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataApiAccountKeyGenerated']
+    eventDataApiAccountKeyGenerated: Optional[AuditEventApiAccountKeyGenerated] = None
+
+class AuditEventApiAccountKeyRevokedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataApiAccountKeyRevoked']
+    eventDataApiAccountKeyRevoked: Optional[AuditEventApiAccountKeyRevoked] = None
+
+class AuditEventApiAccountNameChangedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataApiAccountNameChanged']
+    eventDataApiAccountNameChanged: Optional[AuditEventApiAccountNameChanged] = None
+
+class AuditEventApiAccountRoleLocationChangedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataApiAccountRoleLocationChanged']
+    eventDataApiAccountRoleLocationChanged: Optional[AuditEventApiAccountRoleLocationChanged] = None
+
+class AuditEventCollectionCreatedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataCollectionCreated']
+    eventDataCollectionCreated: Optional[AuditEventCollectionCreated] = None
+
+class AuditEventCollectionDeletedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataCollectionDeleted']
+    eventDataCollectionDeleted: Optional[AuditEventCollectionDeleted] = None
+
+class AuditEventCollectionUpdatedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataCollectionUpdated']
+    eventDataCollectionUpdated: Optional[AuditEventCollectionUpdated] = None
+
+class AuditEventConfigSettingsCreatedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataConfigSettingsCreated']
+    eventDataConfigSettingsCreated: Optional[AuditEventConfigSettingsCreated] = None
+
+class AuditEventConfigSettingsDeletedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataConfigSettingsDeleted']
+    eventDataConfigSettingsDeleted: Optional[AuditEventConfigSettingsDeleted] = None
+
+class AuditEventConfigSettingsUpdatedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataConfigSettingsUpdated']
+    eventDataConfigSettingsUpdated: Optional[AuditEventConfigSettingsUpdated] = None
+
+class AuditEventDeviceAddedToOrgAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataDeviceAddedToOrg']
+    eventDataDeviceAddedToOrg: Optional[AuditEventDeviceAddedToOrg] = None
+
+class AuditEventDeviceAssignedToServerAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataDeviceAssignedToServer']
+    eventDataDeviceAssignedToServer: Optional[AuditEventDeviceAssignedToServer] = None
+
+class AuditEventDeviceIsErasedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataDeviceIsErased']
+    eventDataDeviceIsErased: Optional[AuditEventDeviceIsErased] = None
+
+class AuditEventDeviceRemovedFromOrgAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataDeviceRemovedFromOrg']
+    eventDataDeviceRemovedFromOrg: Optional[AuditEventDeviceRemovedFromOrg] = None
+
+class AuditEventDeviceUnassignedFromServerAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataDeviceUnassignedFromServer']
+    eventDataDeviceUnassignedFromServer: Optional[AuditEventDeviceUnassignedFromServer] = None
+
+class AuditEventDomainAddedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataDomainAdded']
+    eventDataDomainAdded: Optional[AuditEventDomainAdded] = None
+
+class AuditEventDomainRemovedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataDomainRemoved']
+    eventDataDomainRemoved: Optional[AuditEventDomainRemoved] = None
+
+class AuditEventDomainVerifiedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataDomainVerified']
+    eventDataDomainVerified: Optional[AuditEventDomainVerified] = None
+
+class AuditEventExternalAccountAssociatedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataExternalAccountAssociated']
+    eventDataExternalAccountAssociated: Optional[AuditEventExternalAccountAssociated] = None
+
+class AuditEventExternalAccountDisassociatedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataExternalAccountDisassociated']
+    eventDataExternalAccountDisassociated: Optional[AuditEventExternalAccountDisassociated] = None
+
+class AuditEventSubjectHasAppleCarePurchaseAddedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataSubjectHasAppleCarePurchaseAdded']
+    eventDataSubjectHasAppleCarePurchaseAdded: Optional[AuditEventSubjectHasAppleCarePurchaseAdded] = None
+
+class AuditEventSubjectHasAppleCarePurchaseRemovedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataSubjectHasAppleCarePurchaseRemoved']
+    eventDataSubjectHasAppleCarePurchaseRemoved: Optional[AuditEventSubjectHasAppleCarePurchaseRemoved] = None
+
+class AuditEventSubjectHasICloudStoragePurchaseAddedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataSubjectHasICloudStoragePurchaseAdded']
+    eventDataSubjectHasICloudStoragePurchaseAdded: Optional[AuditEventSubjectHasICloudStoragePurchaseAdded] = None
+
+class AuditEventSubjectHasICloudStoragePurchaseRemovedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataSubjectHasICloudStoragePurchaseRemoved']
+    eventDataSubjectHasICloudStoragePurchaseRemoved: Optional[AuditEventSubjectHasICloudStoragePurchaseRemoved] = None
+
+class AuditEventSubscriptionCreatedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataSubscriptionCreated']
+    eventDataSubscriptionCreated: Optional[AuditEventSubscriptionCreated] = None
+
+class AuditEventSubscriptionDeletedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataSubscriptionDeleted']
+    eventDataSubscriptionDeleted: Optional[AuditEventSubscriptionDeleted] = None
+
+class AuditEventSubscriptionUpdatedAttributes(AuditEventCommonAttributes):
+    eventDataPropertyKey: Literal['eventDataSubscriptionUpdated']
+    eventDataSubscriptionUpdated: Optional[AuditEventSubscriptionUpdated] = None
+
+
+AuditEventAttributes = Annotated[
+    Union[
+        AuditEventAccountAddedAttributes,
+        AuditEventAccountDeletedAttributes,
+        AuditEventAccountRoleLocationChangedAttributes,
+        AuditEventApiAccountCreatedWithKeyAttributes,
+        AuditEventApiAccountCreatedWithoutKeyAttributes,
+        AuditEventApiAccountDeletedAttributes,
+        AuditEventApiAccountKeyGeneratedAttributes,
+        AuditEventApiAccountKeyRevokedAttributes,
+        AuditEventApiAccountNameChangedAttributes,
+        AuditEventApiAccountRoleLocationChangedAttributes,
+        AuditEventCollectionCreatedAttributes,
+        AuditEventCollectionDeletedAttributes,
+        AuditEventCollectionUpdatedAttributes,
+        AuditEventConfigSettingsCreatedAttributes,
+        AuditEventConfigSettingsDeletedAttributes,
+        AuditEventConfigSettingsUpdatedAttributes,
+        AuditEventDeviceAddedToOrgAttributes,
+        AuditEventDeviceAssignedToServerAttributes,
+        AuditEventDeviceIsErasedAttributes,
+        AuditEventDeviceRemovedFromOrgAttributes,
+        AuditEventDeviceUnassignedFromServerAttributes,
+        AuditEventDomainAddedAttributes,
+        AuditEventDomainRemovedAttributes,
+        AuditEventDomainVerifiedAttributes,
+        AuditEventExternalAccountAssociatedAttributes,
+        AuditEventExternalAccountDisassociatedAttributes,
+        AuditEventSubjectHasAppleCarePurchaseAddedAttributes,
+        AuditEventSubjectHasAppleCarePurchaseRemovedAttributes,
+        AuditEventSubjectHasICloudStoragePurchaseAddedAttributes,
+        AuditEventSubjectHasICloudStoragePurchaseRemovedAttributes,
+        AuditEventSubscriptionCreatedAttributes,
+        AuditEventSubscriptionDeletedAttributes,
+        AuditEventSubscriptionUpdatedAttributes,
+    ],
+    Field(discriminator='eventDataPropertyKey')
+]
+
+class AuditEvent(BaseModel):
+    attributes: Optional[AuditEventAttributes] = None
     id: str
     type: Literal['auditEvents']
 
