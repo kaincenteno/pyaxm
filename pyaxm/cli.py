@@ -130,5 +130,28 @@ def audit_events(
     df = pd.DataFrame(events_data)
     df.to_csv(sys.stdout, index=False)
 
+@app.command()
+def users():
+    """List all users in the organization."""
+    client = Client()
+    users = client.list_users()
+    users_data = []
+    for user in users:
+        user_info = {'id': user.id}
+        user_info.update(user.attributes.model_dump())
+        users_data.append(user_info)
+    df = pd.DataFrame(users_data)
+    df.to_csv(sys.stdout, index=False)
+
+@app.command()
+def user(user_id: Annotated[str, typer.Argument()]):
+    """Get a user by ID."""
+    client = Client()
+    user = client.get_user(user_id)
+    user_info = {'id': user.id}
+    user_info.update(user.attributes.model_dump())
+    df = pd.DataFrame([user_info])
+    df.to_csv(sys.stdout, index=False)
+
 if __name__ == "__main__":
     app()

@@ -6,6 +6,8 @@ AppleCareCoverageStatus: TypeAlias = str
 AppleCareCoveragePaymentType: TypeAlias = str
 MdmServerStatus: TypeAlias = str
 MdmServerProductFamily: TypeAlias = str
+UserStatus: TypeAlias = str
+UserPhoneNumberType: TypeAlias = str
 
 class DocumentLinks(BaseModel):
     self: AnyHttpUrl
@@ -555,5 +557,48 @@ class AuditEvent(BaseModel):
 
 class AuditEventsResponse(BaseModel):
     data: List[AuditEvent]
+    links: PagedDocumentLinks
+    meta: Optional[PagingInformation] = None
+
+# User
+class UserPhoneNumber(BaseModel):
+    phoneNumber: Optional[str] = None
+    type: Optional[UserPhoneNumberType] = None
+
+class UserRoleOuMapping(BaseModel):
+    roleName: Optional[str] = None
+    ouId: Optional[str] = None
+
+class User(BaseModel):
+    class Attributes(BaseModel):
+        firstName: Optional[str] = None
+        middleName: Optional[str] = None
+        lastName: Optional[str] = None
+        status: Optional[UserStatus] = None
+        managedAppleAccount: Optional[str] = None
+        isExternalUser: Optional[bool] = None
+        roleOuList: Optional[List[UserRoleOuMapping]] = None
+        email: Optional[str] = None
+        employeeNumber: Optional[str] = None
+        costCenter: Optional[str] = None
+        division: Optional[str] = None
+        department: Optional[str] = None
+        jobTitle: Optional[str] = None
+        phoneNumbers: Optional[List[UserPhoneNumber]] = None
+        startDateTime: Optional[AwareDatetime] = None
+        createdDateTime: Optional[AwareDatetime] = None
+        updatedDateTime: Optional[AwareDatetime] = None
+
+    attributes: Optional[Attributes] = None
+    id: str
+    links: Optional[ResourceLinks] = None
+    type: Literal['users']
+
+class UserResponse(BaseModel):
+    data: User
+    links: DocumentLinks
+
+class UsersResponse(BaseModel):
+    data: List[User]
     links: PagedDocumentLinks
     meta: Optional[PagingInformation] = None

@@ -23,6 +23,8 @@ $ pyaxm-cli [OPTIONS] COMMAND [ARGS]...
 * `assign-device`: Assign one or more devices to an MDM server.
 * `unassign-device`: Unassign one or more devices from an MDM...
 * `audit-events`: Get a list of audit events.
+* `users`: List all users in the organization.
+* `user`: Get a user by ID.
 
 ## `pyaxm-cli devices`
 
@@ -185,4 +187,36 @@ $ pyaxm-cli audit-events [OPTIONS] START_TIMESTAMP END_TIMESTAMP
 * `-l, --limit INTEGER`
 * `-f, --fields TEXT`
 * `-c, --cursor TEXT`
+* `--help`: Show this message and exit.
+
+## `pyaxm-cli users`
+
+List all users in the organization.
+
+**Usage**:
+
+```console
+$ pyaxm-cli users [OPTIONS]
+```
+
+**Options**:
+
+* `--help`: Show this message and exit.
+
+## `pyaxm-cli user`
+
+Get a user by ID.
+
+**Usage**:
+
+```console
+$ pyaxm-cli user [OPTIONS] USER_ID
+```
+
+**Arguments**:
+
+* `USER_ID`: [required]
+
+**Options**:
+
 * `--help`: Show this message and exit.
