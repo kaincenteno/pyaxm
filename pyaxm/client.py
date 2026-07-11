@@ -13,7 +13,8 @@ from pyaxm.models import (
     MdmServerDevicesLinkagesResponse,
     OrgDeviceAssignedServerLinkageResponse,
     OrgDeviceActivity,
-    AuditEvent
+    AuditEvent,
+    User,
 )
 from typing import List, Optional
 from functools import wraps
@@ -197,3 +198,20 @@ class Client:
             device_ids, server_id, action, self.access_token.value
         )
         return self._wait_for_device_activity_completion(response.data.id)
+
+    @ensure_valid_token
+    def list_users(self) -> List[User]:
+        response = self.abm.list_users(self.access_token.value)
+        users = response.data
+
+        while response.links.next:
+            next_page = response.links.next
+            response = self.abm.list_users(self.access_token.value, next=next_page)
+            users.extend(response.data)
+
+        return users
+
+    @ensure_valid_token
+    def get_user(self, user_id: str) -> User:
+        response = self.abm.get_user(user_id, self.access_token.value)
+        return response.data

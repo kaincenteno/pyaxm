@@ -1,6 +1,6 @@
 import requests
 from http import HTTPStatus
-from typing import List
+from typing import List, Optional
 from pyaxm.models import (
     OrgDeviceResponse,
     MdmServersResponse,
@@ -11,6 +11,8 @@ from pyaxm.models import (
     OrgDeviceActivityResponse,
     AppleCareCoverageResponse,
     AuditEventsResponse,
+    UsersResponse,
+    UserResponse,
 )
 import time
 from functools import wraps
@@ -37,6 +39,9 @@ def exponential_backoff(retries=5, backoff_factor=2):
     return decorator
 
 class DeviceError(Exception):
+    pass
+
+class UserError(Exception):
     pass
 
 class ABMRequests:
@@ -324,5 +329,78 @@ class ABMRequests:
             return AppleCareCoverageResponse.model_validate(response.json())
         elif response.status_code == HTTPStatus.NOT_FOUND:
             raise DeviceError(response.json()['errors'][0]['title'])
+        else:
+            response.raise_for_status()
+
+    @exponential_backoff(retries=5, backoff_factor=2)
+    def list_users(
+        self,
+        access_token: str,
+        limit: Optional[int] = None,
+        fields: Optional[List[str]] = None,
+        next: Optional[str] = None,
+    ) -> UsersResponse:
+        """
+        Get a list of users in an organization.
+
+        :param access_token: The access token for authentication.
+        :param limit: The number of resources to return. Maximum: 1000.
+        :param fields: Specific fields to return, e.g., ['firstName', 'lastName'].
+        :param next: Optional; the URL for the next page of results.
+        :return: A UsersResponse object containing the list of users.
+        """
+        if next:
+            url = next
+        else:
+            url = 'https://api-business.apple.com/v1/users'
+
+        params = {}
+        if limit:
+            params['limit'] = limit
+        if fields:
+            params['fields[users]'] = ','.join(fields)
+
+        response = self.session.get(
+            url,
+            headers=self._auth_headers(access_token),
+            params=None if next else params
+        )
+
+        if response.status_code == HTTPStatus.OK:
+            return UsersResponse.model_validate(response.json())
+        else:
+            response.raise_for_status()
+
+    @exponential_backoff(retries=5, backoff_factor=2)
+    def get_user(
+        self,
+        user_id: str,
+        access_token: str,
+        fields: Optional[List[str]] = None,
+    ) -> UserResponse:
+        """
+        Get information about a specific user.
+
+        :param user_id: The unique identifier for the user.
+        :param access_token: The access token for authentication.
+        :param fields: Specific fields to return, e.g., ['firstName', 'lastName'].
+        :return: A UserResponse object containing the user information.
+        """
+        url = f'https://api-business.apple.com/v1/users/{user_id}'
+
+        params = {}
+        if fields:
+            params['fields[users]'] = ','.join(fields)
+
+        response = self.session.get(
+            url,
+            headers=self._auth_headers(access_token),
+            params=params
+        )
+
+        if response.status_code == HTTPStatus.OK:
+            return UserResponse.model_validate(response.json())
+        elif response.status_code == HTTPStatus.NOT_FOUND:
+            raise UserError(response.json()['errors'][0]['title'])
         else:
             response.raise_for_status()
