@@ -4,6 +4,8 @@ from typing import Annotated, List, Optional, Literal, TypeAlias, Union
 OrgDeviceActivityType: TypeAlias = str
 AppleCareCoverageStatus: TypeAlias = str
 AppleCareCoveragePaymentType: TypeAlias = str
+MdmServerStatus: TypeAlias = str
+MdmServerProductFamily: TypeAlias = str
 
 class DocumentLinks(BaseModel):
     self: AnyHttpUrl
@@ -130,8 +132,14 @@ class PagingInformation(BaseModel):
 class MdmServer(BaseModel):
     class Attributes(BaseModel):
         createdDateTime: Optional[AwareDatetime] = None
+        defaultProductFamilies: Optional[List[MdmServerProductFamily]] = None
+        deviceCount: Optional[int] = None
+        enableMdmDisownFlag: Optional[bool] = None
+        lastConnectedDateTime: Optional[AwareDatetime] = None
+        lastConnectedIp: Optional[str] = None
         serverName: Optional[str] = None
         serverType: Optional[str] = None
+        status: Optional[MdmServerStatus] = None
         updatedDateTime: Optional[AwareDatetime] = None
     
     class Relationships(BaseModel):
