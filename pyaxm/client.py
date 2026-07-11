@@ -1,11 +1,8 @@
-import datetime as dt
-import Cryptodome.PublicKey.ECC as ECC
-from authlib.jose import jwt
-import uuid
 import os
-import json
 import time
+
 from pyaxm.abm_requests import ABMRequests
+from pyaxm.auth import TokenManager
 from pyaxm.models import (
     OrgDevice,
     AppleCareCoverage,
@@ -17,117 +14,47 @@ from pyaxm.models import (
     User,
 )
 from typing import List, Optional
-from functools import wraps
-
-class AccessToken:
-    def __init__(self, value, expires_at):
-        self.value = value
-        self.expires_at = expires_at
-
-def ensure_valid_token(method):
-    @wraps(method)
-    def wrapper(self, *args, **kwargs):
-        if self.access_token.expires_at <= dt.datetime.now(dt.timezone.utc):
-            self.access_token = self._get_or_refresh_token()
-        return method(self, *args, **kwargs)
-    return wrapper
 
 class Client:
     def __init__(self, axm_client_id=None, axm_key_id=None, key_path=None, token_path=None):
-        # Set configuration from arguments or fall back to environment variables/defaults
         ABM_FOLDER = os.path.join(os.path.expanduser('~'), '.config', 'pyaxm')
-        self.axm_client_id = axm_client_id or os.environ.get('AXM_CLIENT_ID')
-        self.axm_key_id = axm_key_id or os.environ.get('AXM_KEY_ID')
-        self.key_path = key_path or os.path.join(ABM_FOLDER, 'key.pem')
-        self.token_path = token_path or os.path.join(ABM_FOLDER, 'token.json')
-    	
+        axm_client_id = axm_client_id or os.environ.get('AXM_CLIENT_ID')
+        axm_key_id = axm_key_id or os.environ.get('AXM_KEY_ID')
+        key_path = key_path or os.path.join(ABM_FOLDER, 'key.pem')
+        token_path = token_path or os.path.join(ABM_FOLDER, 'token.json')
+
         self.abm = ABMRequests()
-        self.access_token = self._get_or_refresh_token()
+        self.token_manager = TokenManager(
+            abm_requests=self.abm,
+            axm_client_id=axm_client_id,
+            axm_key_id=axm_key_id,
+            key_path=key_path,
+            token_path=token_path,
+        )
 
-    def _get_or_refresh_token(self):
-        try:
-            with open(self.token_path, 'r') as f:
-                cache = json.load(f)
-            if cache['expires_at'] > time.time():
-                value = cache['access_token']
-                expires_at = dt.datetime.fromtimestamp(cache['expires_at'], dt.timezone.utc)
-                return AccessToken(value, expires_at)
-        except (FileNotFoundError, json.JSONDecodeError, KeyError):
-            pass
-        # Generate new token
-        assertion = self._generate_assertion()
-        token_data = {
-            "grant_type": "client_credentials",
-            "client_id": self.axm_client_id,
-            "client_assertion_type": 'urn:ietf:params:oauth:client-assertion-type:jwt-bearer',
-            "client_assertion": assertion,
-            "scope": 'business.api'
-        }
-        token = self.abm.get_access_token(token_data)
-        expires_in = token.get('expires_in')
-        issued_at = dt.datetime.now(dt.timezone.utc)
-        expires_at = issued_at + dt.timedelta(seconds=expires_in)
-        value = token.get('access_token')
-        cache_data = {
-            'access_token': value,
-            'expires_at': expires_at.timestamp()
-        }
-        with open(self.token_path, 'w') as f:
-            json.dump(cache_data, f)
-        return AccessToken(value, expires_at)
-
-    def _generate_assertion(self):
-        issued_at = int(dt.datetime.now(dt.timezone.utc).timestamp())
-        expires_at = issued_at + 60
-        headers = {
-            "alg": "ES256",
-            "kid": self.axm_key_id
-        }
-        payload = {
-            "sub": self.axm_client_id,
-            "aud": 'https://account.apple.com/auth/oauth2/v2/token',
-            "iat": issued_at,
-            "exp": expires_at,
-            "jti": str(uuid.uuid4()),
-            "iss": self.axm_client_id
-        }
-        with open(self.key_path, 'rt') as f:
-            private_key = ECC.import_key(f.read())
-        assertion = jwt.encode(
-            header=headers,
-            payload=payload,
-            key=private_key.export_key(format='PEM')
-        ).decode("utf-8")
-        return assertion
-
-    @ensure_valid_token
     def list_devices(self) -> list[OrgDevice]:
-        response = self.abm.list_devices(self.access_token.value)
+        response = self.abm.list_devices(self.token_manager.get_token_value())
         devices = response.data
         
         while response.links.next:
             next_page = response.links.next
-            response = self.abm.list_devices(self.access_token.value, next=next_page)
+            response = self.abm.list_devices(self.token_manager.get_token_value(), next=next_page)
             devices.extend(response.data)
         
         return devices
 
-    @ensure_valid_token
     def get_device(self, device_id: str) -> OrgDevice:
-        response = self.abm.get_device(device_id, self.access_token.value)
+        response = self.abm.get_device(device_id, self.token_manager.get_token_value())
         return response.data
 
-    @ensure_valid_token
     def get_apple_care_coverage(self, device_id: str) -> list[AppleCareCoverage]:
-        response = self.abm.get_apple_care_coverage(device_id, self.access_token.value)
+        response = self.abm.get_apple_care_coverage(device_id, self.token_manager.get_token_value())
         return response.data
 
-    @ensure_valid_token
     def list_mdm_servers(self) -> list[MdmServer]:
-        response = self.abm.list_mdm_servers(self.access_token.value)
+        response = self.abm.list_mdm_servers(self.token_manager.get_token_value())
         return response.data
 
-    @ensure_valid_token
     def get_audit_events(
         self,
         start_timestamp: str,
@@ -140,7 +67,7 @@ class Client:
         cursor: Optional[str] = None,
     ) -> List[AuditEvent]:
         response = self.abm.get_audit_events(
-            self.access_token.value,
+            self.token_manager.get_token_value(),
             start_timestamp,
             end_timestamp,
             actor_id,
@@ -155,7 +82,7 @@ class Client:
         while response.links.next:
             next_page = response.links.next
             response = self.abm.get_audit_events(
-                self.access_token.value,
+                self.token_manager.get_token_value(),
                 start_timestamp,
                 end_timestamp,
                 next=next_page
@@ -164,54 +91,48 @@ class Client:
 
         return events
 
-    @ensure_valid_token
     def list_devices_in_mdm_server(self, server_id: str) -> list[MdmServerDevicesLinkagesResponse.Data]:
-        response = self.abm.list_devices_in_mdm_server(server_id, self.access_token.value)
+        response = self.abm.list_devices_in_mdm_server(server_id, self.token_manager.get_token_value())
         devices = response.data
         while response.links.next:
             next_page = response.links.next
-            response = self.abm.list_devices_in_mdm_server(server_id, self.access_token.value, next=next_page)
+            response = self.abm.list_devices_in_mdm_server(server_id, self.token_manager.get_token_value(), next=next_page)
             devices.extend(response.data)
         return devices
 
-    @ensure_valid_token
     def get_device_server_assignment(self, device_id: str) -> OrgDeviceAssignedServerLinkageResponse.Data:
-        response = self.abm.get_device_server_assignment(device_id, self.access_token.value)
+        response = self.abm.get_device_server_assignment(device_id, self.token_manager.get_token_value())
         return response.data
 
-    @ensure_valid_token
     def _wait_for_device_activity_completion(self, activity_id: str) -> OrgDeviceActivity:
         time.sleep(10)
-        activity_response = self.abm.get_device_activity(activity_id, self.access_token.value)
+        activity_response = self.abm.get_device_activity(activity_id, self.token_manager.get_token_value())
         retry = 0
         while activity_response.data.attributes.status == 'IN_PROGRESS' and retry < 5:
             time.sleep(10 * retry)
             retry += 1
-            activity_response = self.abm.get_device_activity(activity_id, self.access_token.value)
+            activity_response = self.abm.get_device_activity(activity_id, self.token_manager.get_token_value())
         return activity_response.data
 
-    @ensure_valid_token
     def assign_unassign_device_to_mdm_server(
         self, device_ids: List[str], server_id: str, action: str
     ) -> OrgDeviceActivity:
         response = self.abm.assign_unassign_device_to_mdm_server(
-            device_ids, server_id, action, self.access_token.value
+            device_ids, server_id, action, self.token_manager.get_token_value()
         )
         return self._wait_for_device_activity_completion(response.data.id)
 
-    @ensure_valid_token
     def list_users(self) -> List[User]:
-        response = self.abm.list_users(self.access_token.value)
+        response = self.abm.list_users(self.token_manager.get_token_value())
         users = response.data
 
         while response.links.next:
             next_page = response.links.next
-            response = self.abm.list_users(self.access_token.value, next=next_page)
+            response = self.abm.list_users(self.token_manager.get_token_value(), next=next_page)
             users.extend(response.data)
 
         return users
 
-    @ensure_valid_token
     def get_user(self, user_id: str) -> User:
-        response = self.abm.get_user(user_id, self.access_token.value)
+        response = self.abm.get_user(user_id, self.token_manager.get_token_value())
         return response.data

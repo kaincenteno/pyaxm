@@ -1,6 +1,5 @@
 pydantic
 requests
-Authlib
-pycryptodomex
+pyjwt
 pandas
 typer
