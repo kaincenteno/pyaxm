@@ -3,4 +3,3 @@ requests
 pyjwt
 pandas
 typer
-rich

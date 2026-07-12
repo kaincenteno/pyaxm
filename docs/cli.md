@@ -1,7 +1,5 @@
 # `pyaxm-cli`
 
-Query Apple Business Manager using Python.
-
 **Usage**:
 
 ```console
@@ -10,8 +8,6 @@ $ pyaxm-cli [OPTIONS] COMMAND [ARGS]...
 
 **Options**:
 
-* `--format TEXT`: Output format: table or csv  [default: table]
-* `-o, --output TEXT`: Save output to file or directory (auto-names inside directories)
 * `--install-completion`: Install completion for the current shell.
 * `--show-completion`: Show completion for the current shell, to copy it or customize the installation.
 * `--help`: Show this message and exit.
