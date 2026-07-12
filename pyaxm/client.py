@@ -104,12 +104,16 @@ class Client:
         response = self.abm.get_device_server_assignment(device_id, self.token_manager.get_token_value())
         return response.data
 
-    def _wait_for_device_activity_completion(self, activity_id: str) -> OrgDeviceActivity:
-        time.sleep(10)
+    def _wait_for_device_activity_completion(
+        self,
+        activity_id: str,
+        backoff_factor: int = 2,
+        max_retries: int = 5,
+    ) -> OrgDeviceActivity:
         activity_response = self.abm.get_device_activity(activity_id, self.token_manager.get_token_value())
         retry = 0
-        while activity_response.data.attributes.status == 'IN_PROGRESS' and retry < 5:
-            time.sleep(10 * retry)
+        while activity_response.data.attributes.status == 'IN_PROGRESS' and retry < max_retries:
+            time.sleep(backoff_factor ** (retry + 1))
             retry += 1
             activity_response = self.abm.get_device_activity(activity_id, self.token_manager.get_token_value())
         return activity_response.data
