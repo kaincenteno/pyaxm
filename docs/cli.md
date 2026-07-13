@@ -38,6 +38,7 @@ $ pyaxm-cli devices [OPTIONS]
 
 **Options**:
 
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli device`
@@ -56,6 +57,7 @@ $ pyaxm-cli device [OPTIONS] DEVICE_ID
 
 **Options**:
 
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli apple-care-coverage`
@@ -74,6 +76,7 @@ $ pyaxm-cli apple-care-coverage [OPTIONS] DEVICE_ID
 
 **Options**:
 
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli mdm-servers`
@@ -88,6 +91,7 @@ $ pyaxm-cli mdm-servers [OPTIONS]
 
 **Options**:
 
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli mdm-server`
@@ -106,6 +110,7 @@ $ pyaxm-cli mdm-server [OPTIONS] SERVER_ID
 
 **Options**:
 
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli mdm-server-assigned`
@@ -124,6 +129,7 @@ $ pyaxm-cli mdm-server-assigned [OPTIONS] DEVICE_ID
 
 **Options**:
 
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli assign-device`
@@ -143,6 +149,7 @@ $ pyaxm-cli assign-device [OPTIONS] DEVICE_IDS... SERVER_ID
 
 **Options**:
 
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli unassign-device`
@@ -162,6 +169,7 @@ $ pyaxm-cli unassign-device [OPTIONS] DEVICE_IDS... SERVER_ID
 
 **Options**:
 
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli audit-events`
@@ -187,6 +195,7 @@ $ pyaxm-cli audit-events [OPTIONS] START_TIMESTAMP END_TIMESTAMP
 * `-l, --limit INTEGER`
 * `-f, --fields TEXT`
 * `-c, --cursor TEXT`
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli users`
@@ -201,6 +210,7 @@ $ pyaxm-cli users [OPTIONS]
 
 **Options**:
 
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli user`
@@ -219,4 +229,5 @@ $ pyaxm-cli user [OPTIONS] USER_ID
 
 **Options**:
 
+* `--format TEXT`: Output format  [default: yaml]
 * `--help`: Show this message and exit.

@@ -14,6 +14,7 @@ dependencies = [
   "pyjwt",
   "pandas",
   "typer",
+  "pyyaml",
 ]
 readme = "README.md"
 license = "GPL-3.0-or-later"

@@ -1,6 +1,7 @@
 import sys
 import pandas as pd
 import typer
+import yaml
 from typing_extensions import Annotated
 from typing import List, Optional
 from pyaxm.client import Client
@@ -9,11 +10,24 @@ from pyaxm.utils import download_activity_csv
 app = typer.Typer()
 
 
+def _output(data, format: str):
+    """Output data as YAML or CSV to stdout."""
+    if format == "csv":
+        if isinstance(data, dict):
+            data = [data]
+        df = pd.DataFrame(data)
+        df.to_csv(sys.stdout, index=False)
+    else:
+        yaml.dump(data, sys.stdout, default_flow_style=False)
+
+
 # ── device commands ─────────────────────────────────────────────────
 
 
 @app.command()
-def devices():
+def devices(
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
     """List all devices in the organization."""
     client = Client()
     devices = client.list_devices()
@@ -22,37 +36,45 @@ def devices():
         info = {"id": d.id}
         info.update(d.attributes.model_dump())
         records.append(info)
-    df = pd.DataFrame(records)
-    df.to_csv(sys.stdout, index=False)
+
+    _output(records, format)
 
 
 @app.command()
-def device(device_id: Annotated[str, typer.Argument()]):
+def device(
+    device_id: Annotated[str, typer.Argument()],
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
     """Get a device by ID."""
     client = Client()
     d = client.get_device(device_id)
     info = {"id": d.id}
     if d.attributes:
         info.update(d.attributes.model_dump())
-    df = pd.DataFrame([info])
-    df.to_csv(sys.stdout, index=False)
+
+    _output(info, format)
 
 
 @app.command()
-def apple_care_coverage(device_id: Annotated[str, typer.Argument()]):
+def apple_care_coverage(
+    device_id: Annotated[str, typer.Argument()],
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
     """Get AppleCare coverage for a device."""
     client = Client()
     coverage = client.get_apple_care_coverage(device_id)
     records = [{"id": item.id, **item.attributes.model_dump()} for item in coverage]
-    df = pd.DataFrame(records)
-    df.to_csv(sys.stdout, index=False)
+
+    _output(records, format)
 
 
 # ── MDM server commands ─────────────────────────────────────────────
 
 
 @app.command()
-def mdm_servers():
+def mdm_servers(
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
     """List all MDM servers."""
     client = Client()
     servers = client.list_mdm_servers()
@@ -61,34 +83,41 @@ def mdm_servers():
         info = {"id": s.id}
         info.update(s.attributes.model_dump())
         records.append(info)
-    df = pd.DataFrame(records)
-    df.to_csv(sys.stdout, index=False)
+
+    _output(records, format)
 
 
 @app.command()
-def mdm_server(server_id: Annotated[str, typer.Argument()]):
+def mdm_server(
+    server_id: Annotated[str, typer.Argument()],
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
     """List devices in a specific MDM server."""
     client = Client()
     devices = client.list_devices_in_mdm_server(server_id)
     records = [{"id": d.id} for d in devices]
-    df = pd.DataFrame(records)
-    df.to_csv(sys.stdout, index=False)
+
+    _output(records, format)
 
 
 @app.command()
-def mdm_server_assigned(device_id: Annotated[str, typer.Argument()]):
+def mdm_server_assigned(
+    device_id: Annotated[str, typer.Argument()],
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
     """Get the server assignment for a device."""
     client = Client()
     assignment = client.get_device_server_assignment(device_id)
-    records = [{"id": assignment.id}]
-    df = pd.DataFrame(records)
-    df.to_csv(sys.stdout, index=False)
+    info = {"id": assignment.id}
+
+    _output(info, format)
 
 
 @app.command()
 def assign_device(
     device_ids: Annotated[List[str], typer.Argument()],
     server_id: Annotated[str, typer.Argument()],
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
 ):
     """Assign one or more devices to an MDM server."""
     client = Client()
@@ -96,8 +125,8 @@ def assign_device(
     info = {"id": activity.id}
     if activity.attributes:
         info.update(activity.attributes.model_dump())
-    df = pd.DataFrame([info])
-    df.to_csv(sys.stdout, index=False)
+
+    _output(info, format)
 
     file_path = download_activity_csv(activity)
     if file_path:
@@ -108,6 +137,7 @@ def assign_device(
 def unassign_device(
     device_ids: Annotated[List[str], typer.Argument()],
     server_id: Annotated[str, typer.Argument()],
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
 ):
     """Unassign one or more devices from an MDM server."""
     client = Client()
@@ -115,8 +145,8 @@ def unassign_device(
     info = {"id": activity.id}
     if activity.attributes:
         info.update(activity.attributes.model_dump())
-    df = pd.DataFrame([info])
-    df.to_csv(sys.stdout, index=False)
+
+    _output(info, format)
 
     file_path = download_activity_csv(activity)
     if file_path:
@@ -136,6 +166,7 @@ def audit_events(
     limit: Annotated[Optional[int], typer.Option("--limit", "-l")] = None,
     fields: Annotated[Optional[List[str]], typer.Option("--fields", "-f")] = None,
     cursor: Annotated[Optional[str], typer.Option("--cursor", "-c")] = None,
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
 ):
     """Get a list of audit events."""
     client = Client()
@@ -154,15 +185,17 @@ def audit_events(
         info = {"id": event.id}
         info.update(event.attributes.model_dump())
         records.append(info)
-    df = pd.DataFrame(records)
-    df.to_csv(sys.stdout, index=False)
+
+    _output(records, format)
 
 
 # ── user commands ───────────────────────────────────────────────────
 
 
 @app.command()
-def users():
+def users(
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
     """List all users in the organization."""
     client = Client()
     users = client.list_users()
@@ -171,20 +204,23 @@ def users():
         info = {"id": u.id}
         info.update(u.attributes.model_dump())
         records.append(info)
-    df = pd.DataFrame(records)
-    df.to_csv(sys.stdout, index=False)
+
+    _output(records, format)
 
 
 @app.command()
-def user(user_id: Annotated[str, typer.Argument()]):
+def user(
+    user_id: Annotated[str, typer.Argument()],
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
     """Get a user by ID."""
     client = Client()
     item = client.get_user(user_id)
     info = {"id": item.id}
     if item.attributes:
         info.update(item.attributes.model_dump())
-    df = pd.DataFrame([info])
-    df.to_csv(sys.stdout, index=False)
+
+    _output(info, format)
 
 
 if __name__ == "__main__":
