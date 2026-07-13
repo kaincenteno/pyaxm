@@ -4,3 +4,4 @@ requests
 pyjwt
 pandas
 typer
+pyyaml
