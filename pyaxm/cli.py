@@ -1,4 +1,6 @@
 import sys
+from datetime import datetime, timezone
+
 import pandas as pd
 import typer
 import yaml
@@ -19,6 +21,28 @@ def _output(data, format: str):
         df.to_csv(sys.stdout, index=False)
     else:
         yaml.dump(data, sys.stdout, default_flow_style=False)
+
+
+def _parse_audit_timestamp(value: str, *, end_of_day: bool = False) -> str:
+    """Parse an audit-event date/timestamp argument.
+
+    Accepts YYYY-MM-DD or full ISO 8601 datetimes.
+    Date-only values are converted to UTC start/end of day.
+    """
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        raise typer.BadParameter(
+            "Invalid date/time format. Use YYYY-MM-DD or ISO 8601 like 2025-12-31 or 2025-12-31T23:59:59Z."
+        )
+
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+
+    if end_of_day and len(value) == 10:
+        parsed = parsed.replace(hour=23, minute=59, second=59, microsecond=0)
+
+    return parsed.isoformat().replace("+00:00", "Z")
 
 
 # ── device commands ─────────────────────────────────────────────────
@@ -158,8 +182,20 @@ def unassign_device(
 
 @app.command()
 def audit_events(
-    start_timestamp: Annotated[str, typer.Argument()],
-    end_timestamp: Annotated[str, typer.Argument()],
+    start_timestamp: Annotated[
+        str,
+        typer.Argument(
+            ...,
+            help="Start date in YYYY-MM-DD or ISO 8601 format. Date-only values are treated as midnight UTC.",
+        ),
+    ],
+    end_timestamp: Annotated[
+        str,
+        typer.Argument(
+            ...,
+            help="End date in YYYY-MM-DD or ISO 8601 format. Date-only values are treated as end of day UTC.",
+        ),
+    ],
     actor_id: Annotated[Optional[str], typer.Option("--actor-id", "-a")] = None,
     subject_id: Annotated[Optional[str], typer.Option("--subject-id", "-s")] = None,
     event_type: Annotated[Optional[str], typer.Option("--event-type", "-e")] = None,
@@ -169,6 +205,8 @@ def audit_events(
     format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
 ):
     """Get a list of audit events."""
+    start_timestamp = _parse_audit_timestamp(start_timestamp, end_of_day=False)
+    end_timestamp = _parse_audit_timestamp(end_timestamp, end_of_day=True)
     client = Client()
     events = client.get_audit_events(
         start_timestamp=start_timestamp,

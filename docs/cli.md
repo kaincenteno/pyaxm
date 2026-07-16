@@ -179,13 +179,13 @@ Get a list of audit events.
 **Usage**:
 
 ```console
-$ pyaxm-cli audit-events [OPTIONS] START_TIMESTAMP END_TIMESTAMP
+$ pyaxm-cli audit-events [OPTIONS] START_DATE END_DATE
 ```
 
 **Arguments**:
 
-* `START_TIMESTAMP`: [required]
-* `END_TIMESTAMP`: [required]
+* `START_DATE`: [required] Start date in `YYYY-MM-DD` or ISO 8601 format.
+* `END_DATE`: [required] End date in `YYYY-MM-DD` or ISO 8601 format.
 
 **Options**:
 
