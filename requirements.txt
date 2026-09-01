@@ -1,7 +1,7 @@
-cryptography
+pycryptodomex
 pydantic
 requests
-pyjwt
+Authlib
 pandas
 typer
 pyyaml
