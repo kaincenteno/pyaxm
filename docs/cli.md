@@ -38,7 +38,7 @@ $ pyaxm-cli devices [OPTIONS]
 
 **Options**:
 
-* `--format TEXT`: Output format  [default: yaml]
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli device`
@@ -48,16 +48,16 @@ Get a device by ID.
 **Usage**:
 
 ```console
-$ pyaxm-cli device [OPTIONS] DEVICE_ID
+$ pyaxm-cli device [OPTIONS] {device_id}
 ```
 
 **Arguments**:
 
-* `DEVICE_ID`: [required]
+* `device_id`: [required]
 
 **Options**:
 
-* `--format TEXT`: Output format  [default: yaml]
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli apple-care-coverage`
@@ -67,16 +67,16 @@ Get AppleCare coverage for a device.
 **Usage**:
 
 ```console
-$ pyaxm-cli apple-care-coverage [OPTIONS] DEVICE_ID
+$ pyaxm-cli apple-care-coverage [OPTIONS] {device_id}
 ```
 
 **Arguments**:
 
-* `DEVICE_ID`: [required]
+* `device_id`: [required]
 
 **Options**:
 
-* `--format TEXT`: Output format  [default: yaml]
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli mdm-servers`
@@ -91,7 +91,7 @@ $ pyaxm-cli mdm-servers [OPTIONS]
 
 **Options**:
 
-* `--format TEXT`: Output format  [default: yaml]
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli mdm-server`
@@ -101,16 +101,16 @@ List devices in a specific MDM server.
 **Usage**:
 
 ```console
-$ pyaxm-cli mdm-server [OPTIONS] SERVER_ID
+$ pyaxm-cli mdm-server [OPTIONS] {server_id}
 ```
 
 **Arguments**:
 
-* `SERVER_ID`: [required]
+* `server_id`: [required]
 
 **Options**:
 
-* `--format TEXT`: Output format  [default: yaml]
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli mdm-server-assigned`
@@ -120,16 +120,16 @@ Get the server assignment for a device.
 **Usage**:
 
 ```console
-$ pyaxm-cli mdm-server-assigned [OPTIONS] DEVICE_ID
+$ pyaxm-cli mdm-server-assigned [OPTIONS] {device_id}
 ```
 
 **Arguments**:
 
-* `DEVICE_ID`: [required]
+* `device_id`: [required]
 
 **Options**:
 
-* `--format TEXT`: Output format  [default: yaml]
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli assign-device`
@@ -139,17 +139,17 @@ Assign one or more devices to an MDM server.
 **Usage**:
 
 ```console
-$ pyaxm-cli assign-device [OPTIONS] DEVICE_IDS... SERVER_ID
+$ pyaxm-cli assign-device [OPTIONS] {device_ids}... {server_id}
 ```
 
 **Arguments**:
 
-* `DEVICE_IDS...`: [required]
-* `SERVER_ID`: [required]
+* `device_ids...`: [required]
+* `server_id`: [required]
 
 **Options**:
 
-* `--format TEXT`: Output format  [default: yaml]
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli unassign-device`
@@ -159,17 +159,17 @@ Unassign one or more devices from an MDM server.
 **Usage**:
 
 ```console
-$ pyaxm-cli unassign-device [OPTIONS] DEVICE_IDS... SERVER_ID
+$ pyaxm-cli unassign-device [OPTIONS] {device_ids}... {server_id}
 ```
 
 **Arguments**:
 
-* `DEVICE_IDS...`: [required]
-* `SERVER_ID`: [required]
+* `device_ids...`: [required]
+* `server_id`: [required]
 
 **Options**:
 
-* `--format TEXT`: Output format  [default: yaml]
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli audit-events`
@@ -179,23 +179,23 @@ Get a list of audit events.
 **Usage**:
 
 ```console
-$ pyaxm-cli audit-events [OPTIONS] START_DATE END_DATE
+$ pyaxm-cli audit-events [OPTIONS] {start_timestamp} {end_timestamp}
 ```
 
 **Arguments**:
 
-* `START_DATE`: [required] Start date in `YYYY-MM-DD` or ISO 8601 format.
-* `END_DATE`: [required] End date in `YYYY-MM-DD` or ISO 8601 format.
+* `start_timestamp`: Start date in YYYY-MM-DD or ISO 8601 format. Date-only values are treated as midnight UTC.  [required]
+* `end_timestamp`: End date in YYYY-MM-DD or ISO 8601 format. Date-only values are treated as end of day UTC.  [required]
 
 **Options**:
 
-* `-a, --actor-id TEXT`
-* `-s, --subject-id TEXT`
-* `-e, --event-type TEXT`
-* `-l, --limit INTEGER`
-* `-f, --fields TEXT`
-* `-c, --cursor TEXT`
-* `--format TEXT`: Output format  [default: yaml]
+* `-a, --actor-id <str>`
+* `-s, --subject-id <str>`
+* `-e, --event-type <str>`
+* `-l, --limit <int>`
+* `-f, --fields <str>`
+* `-c, --cursor <str>`
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli users`
@@ -210,7 +210,7 @@ $ pyaxm-cli users [OPTIONS]
 
 **Options**:
 
-* `--format TEXT`: Output format  [default: yaml]
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
 ## `pyaxm-cli user`
@@ -220,14 +220,14 @@ Get a user by ID.
 **Usage**:
 
 ```console
-$ pyaxm-cli user [OPTIONS] USER_ID
+$ pyaxm-cli user [OPTIONS] {user_id}
 ```
 
 **Arguments**:
 
-* `USER_ID`: [required]
+* `user_id`: [required]
 
 **Options**:
 
-* `--format TEXT`: Output format  [default: yaml]
+* `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
