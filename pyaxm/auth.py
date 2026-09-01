@@ -4,9 +4,8 @@ import time
 import uuid
 from dataclasses import dataclass
 
-import jwt
-from cryptography.hazmat.primitives import serialization as crypto_serialization
-from cryptography.hazmat.primitives.serialization import load_pem_private_key
+import Cryptodome.PublicKey.ECC as ECC
+from authlib.jose import jwt
 
 
 @dataclass
@@ -37,27 +36,6 @@ class TokenManager:
         self.token_path = token_path
         self.access_token = self._get_or_refresh_token()
 
-    def _load_ec_key(self) -> bytes:
-        """Load and normalize an Apple .p8 EC private key.
-
-        Apple provides EC private keys in PKCS#8 PEM format
-        (``-----BEGIN PRIVATE KEY-----``).  Some PyJWT or
-        ``cryptography`` releases can be sensitive to the exact PEM
-        header / footer wording or encoding.  To avoid any such issues,
-        this helper loads the key with ``cryptography`` (which
-        transparently handles both PKCS#8 and SEC1 / EC PEM formats)
-        and re-serialises it back to a consistent PKCS#8 PEM byte
-        string.
-        """
-        with open(self.key_path, "rb") as f:
-            key_data = f.read()
-        private_key = load_pem_private_key(key_data, password=None)
-        return private_key.private_bytes(
-            encoding=crypto_serialization.Encoding.PEM,
-            format=crypto_serialization.PrivateFormat.PKCS8,
-            encryption_algorithm=crypto_serialization.NoEncryption(),
-        )
-
     def _generate_assertion(self) -> str:
         issued_at = int(dt.datetime.now(dt.timezone.utc).timestamp())
         expires_at = issued_at + 60
@@ -73,8 +51,14 @@ class TokenManager:
             "jti": str(uuid.uuid4()),
             "iss": self.axm_client_id,
         }
-        key = self._load_ec_key()
-        return jwt.encode(payload, key, algorithm="ES256", headers=headers)
+        with open(self.key_path, 'rt') as f:
+            private_key = ECC.import_key(f.read())
+        assertion = jwt.encode(
+            header=headers,
+            payload=payload,
+            key=private_key.export_key(format='PEM')
+        ).decode("utf-8")
+        return assertion
 
     def _get_or_refresh_token(self) -> AccessToken:
         try:
