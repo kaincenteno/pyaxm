@@ -22,6 +22,8 @@ $ pyaxm-cli [OPTIONS] COMMAND [ARGS]...
 * `mdm-server-assigned`: Get the server assignment for a device.
 * `assign-device`: Assign one or more devices to an MDM server.
 * `unassign-device`: Unassign one or more devices from an MDM...
+* `update-mdm-migration-deadline`: Update the MDM migration deadline for one...
+* `cancel-mdm-migration`: Cancel an in-progress MDM migration for...
 * `audit-events`: Get a list of audit events.
 * `users`: List all users in the organization.
 * `user`: Get a user by ID.
@@ -149,6 +151,7 @@ $ pyaxm-cli assign-device [OPTIONS] {device_ids}... {server_id}
 
 **Options**:
 
+* `--deadline <str>`: Migration deadline: YYYY-MM-DD or ISO 8601 (e.g. 2026-03-15 or 2026-03-15T17:00:00.000Z), max 90 days in the future. When set, devices are assigned with an MDM migration deadline.
 * `--format <str>`: Output format  [default: yaml]
 * `--help`: Show this message and exit.
 
@@ -166,6 +169,45 @@ $ pyaxm-cli unassign-device [OPTIONS] {device_ids}... {server_id}
 
 * `device_ids...`: [required]
 * `server_id`: [required]
+
+**Options**:
+
+* `--format <str>`: Output format  [default: yaml]
+* `--help`: Show this message and exit.
+
+## `pyaxm-cli update-mdm-migration-deadline`
+
+Update the MDM migration deadline for one or more devices.
+
+**Usage**:
+
+```console
+$ pyaxm-cli update-mdm-migration-deadline [OPTIONS] {device_ids}... {deadline}
+```
+
+**Arguments**:
+
+* `device_ids...`: [required]
+* `deadline`: Migration deadline: YYYY-MM-DD or ISO 8601 (e.g. 2026-03-15 or 2026-03-15T17:00:00.000Z), max 90 days in the future.  [required]
+
+**Options**:
+
+* `--format <str>`: Output format  [default: yaml]
+* `--help`: Show this message and exit.
+
+## `pyaxm-cli cancel-mdm-migration`
+
+Cancel an in-progress MDM migration for one or more devices.
+
+**Usage**:
+
+```console
+$ pyaxm-cli cancel-mdm-migration [OPTIONS] {device_ids}...
+```
+
+**Arguments**:
+
+* `device_ids...`: [required]
 
 **Options**:
 

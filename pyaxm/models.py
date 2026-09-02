@@ -1,9 +1,17 @@
 from pydantic import BaseModel, ConfigDict, AnyHttpUrl, AwareDatetime, Field
 from typing import Annotated, List, Optional, Literal, TypeAlias, Union
 
-OrgDeviceActivityType: TypeAlias = str
+OrgDeviceActivityType: TypeAlias = Literal[
+    "ASSIGN_DEVICES",
+    "UNASSIGN_DEVICES",
+    "ASSIGN_DEVICES_WITH_MDM_MIGRATION_DEADLINE",
+    "UPDATE_MDM_MIGRATION_DEADLINE",
+    "CANCEL_MDM_MIGRATION",
+    "RELEASE_DEVICES",
+]
 AppleCareCoverageStatus: TypeAlias = str
 AppleCareCoveragePaymentType: TypeAlias = str
+MdmMigrationStatus: TypeAlias = Literal["REQUESTED", "STARTED", "SUCCESS", "FAILED"]
 MdmServerStatus: TypeAlias = str
 MdmServerProductFamily: TypeAlias = str
 UserStatus: TypeAlias = str
@@ -55,8 +63,9 @@ class OrgDevice(BaseModel):
         serialNumber: Optional[str] = None
         status: Optional[str] = None
         updatedDateTime: Optional[AwareDatetime] = None
-        # releaserEntityType: Optional[str] = None Documented, but not returned
-        # releaserId: Optional[str] = None Documented but not returned
+        isMdmMigrationCapable: Optional[bool] = None
+        mdmMigrationStatus: Optional[MdmMigrationStatus] = None
+        mdmMigrationDeadlineDateTime: Optional[AwareDatetime] = None
     
     class Relationships(BaseModel):
         class AssignedServer(BaseModel):
@@ -98,16 +107,20 @@ class OrgDeviceActivity(BaseModel):
 class OrgDeviceActivityCreateRequest(BaseModel):
     class Data(BaseModel):
         class Attributes(BaseModel):
+            class ActivityTypeMetadata(BaseModel):
+                mdmMigrationDeadlineDateTime: Optional[AwareDatetime] = None
+
             activityType: OrgDeviceActivityType
-        
+            activityTypeMetadata: Optional[ActivityTypeMetadata] = None
+
         class Relationships(BaseModel):
             class Devices(BaseModel):
                 class Data(BaseModel):
                     id: str
                     type: Literal['orgDevices']
-                
+
                 data: List[Data]
-            
+
             class MdmServer(BaseModel):
                 class Data(BaseModel):
                     id: str
@@ -116,7 +129,7 @@ class OrgDeviceActivityCreateRequest(BaseModel):
                 data: Data
 
             devices: Devices
-            mdmServer: MdmServer
+            mdmServer: Optional[MdmServer] = None
 
         attributes: Attributes
         relationships: Relationships
