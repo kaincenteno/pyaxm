@@ -10,6 +10,7 @@ from pyaxm.models import (
     MdmServerDevicesLinkagesResponse,
     OrgDeviceAssignedServerLinkageResponse,
     OrgDeviceActivity,
+    OrgDeviceActivityType,
     AuditEvent,
     User,
 )
@@ -119,10 +120,18 @@ class Client:
         return activity_response.data
 
     def assign_unassign_device_to_mdm_server(
-        self, device_ids: List[str], server_id: str, action: str
+        self,
+        device_ids: List[str],
+        server_id: Optional[str],
+        action: OrgDeviceActivityType,
+        mdm_migration_deadline_date_time: Optional[str] = None,
     ) -> OrgDeviceActivity:
         response = self.abm.assign_unassign_device_to_mdm_server(
-            device_ids, server_id, action, self.token_manager.get_token_value()
+            device_ids,
+            server_id,
+            action,
+            self.token_manager.get_token_value(),
+            mdm_migration_deadline_date_time,
         )
         return self._wait_for_device_activity_completion(response.data.id)
 

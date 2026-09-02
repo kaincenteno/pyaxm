@@ -1,4 +1,5 @@
 import sys
+import time
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -24,13 +25,13 @@ def _output(data, format: str):
 
 
 def _parse_audit_timestamp(value: str, *, end_of_day: bool = False) -> str:
-    """Parse an audit-event date/timestamp argument.
+    """Parse a date/timestamp argument.
 
-    Accepts YYYY-MM-DD or full ISO 8601 datetimes.
+    Accepts YYYY-MM-DD or full ISO 8601 datetimes (with or without a trailing Z).
     Date-only values are converted to UTC start/end of day.
     """
     try:
-        parsed = datetime.fromisoformat(value)
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
     except ValueError:
         raise typer.BadParameter(
             "Invalid date/time format. Use YYYY-MM-DD or ISO 8601 like 2025-12-31 or 2025-12-31T23:59:59Z."
@@ -43,6 +44,25 @@ def _parse_audit_timestamp(value: str, *, end_of_day: bool = False) -> str:
         parsed = parsed.replace(hour=23, minute=59, second=59, microsecond=0)
 
     return parsed.isoformat().replace("+00:00", "Z")
+
+
+def _run_device_activity(activity, format: str):
+    """Output an org device activity result and download its CSV report."""
+    info = {"id": activity.id}
+    if activity.attributes:
+        info.update(activity.attributes.model_dump())
+
+    _output(info, format)
+
+    typer.echo(
+        "Waiting 10 seconds for the activity report to be ready before downloading "
+        "(this also avoids Apple API rate limiting)..."
+    )
+    time.sleep(10)
+
+    file_path = download_activity_csv(activity)
+    if file_path:
+        typer.echo(f"Report downloaded successfully to: {file_path}")
 
 
 # ── device commands ─────────────────────────────────────────────────
@@ -141,20 +161,27 @@ def mdm_server_assigned(
 def assign_device(
     device_ids: Annotated[List[str], typer.Argument()],
     server_id: Annotated[str, typer.Argument()],
+    deadline: Annotated[
+        Optional[str],
+        typer.Option(
+            "--deadline",
+            help="Migration deadline: YYYY-MM-DD or ISO 8601 (e.g. 2026-03-15 or "
+            "2026-03-15T17:00:00.000Z), max 90 days in the future. When set, devices are "
+            "assigned with an MDM migration deadline.",
+        ),
+    ] = None,
     format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
 ):
     """Assign one or more devices to an MDM server."""
     client = Client()
-    activity = client.assign_unassign_device_to_mdm_server(device_ids, server_id, "ASSIGN_DEVICES")
-    info = {"id": activity.id}
-    if activity.attributes:
-        info.update(activity.attributes.model_dump())
-
-    _output(info, format)
-
-    file_path = download_activity_csv(activity)
-    if file_path:
-        typer.echo(f"Report downloaded successfully to: {file_path}")
+    action = "ASSIGN_DEVICES_WITH_MDM_MIGRATION_DEADLINE" if deadline else "ASSIGN_DEVICES"
+    activity = client.assign_unassign_device_to_mdm_server(
+        device_ids,
+        server_id,
+        action,
+        mdm_migration_deadline_date_time=_parse_audit_timestamp(deadline) if deadline else None,
+    )
+    _run_device_activity(activity, format)
 
 
 @app.command()
@@ -166,15 +193,41 @@ def unassign_device(
     """Unassign one or more devices from an MDM server."""
     client = Client()
     activity = client.assign_unassign_device_to_mdm_server(device_ids, server_id, "UNASSIGN_DEVICES")
-    info = {"id": activity.id}
-    if activity.attributes:
-        info.update(activity.attributes.model_dump())
+    _run_device_activity(activity, format)
 
-    _output(info, format)
 
-    file_path = download_activity_csv(activity)
-    if file_path:
-        typer.echo(f"Report downloaded successfully to: {file_path}")
+@app.command()
+def update_mdm_migration_deadline(
+    device_ids: Annotated[List[str], typer.Argument()],
+    deadline: Annotated[
+        str,
+        typer.Argument(
+            help="Migration deadline: YYYY-MM-DD or ISO 8601 (e.g. 2026-03-15 or "
+            "2026-03-15T17:00:00.000Z), max 90 days in the future."
+        ),
+    ],
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
+    """Update the MDM migration deadline for one or more devices."""
+    client = Client()
+    activity = client.assign_unassign_device_to_mdm_server(
+        device_ids,
+        None,
+        "UPDATE_MDM_MIGRATION_DEADLINE",
+        mdm_migration_deadline_date_time=_parse_audit_timestamp(deadline),
+    )
+    _run_device_activity(activity, format)
+
+
+@app.command()
+def cancel_mdm_migration(
+    device_ids: Annotated[List[str], typer.Argument()],
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
+    """Cancel an in-progress MDM migration for one or more devices."""
+    client = Client()
+    activity = client.assign_unassign_device_to_mdm_server(device_ids, None, "CANCEL_MDM_MIGRATION")
+    _run_device_activity(activity, format)
 
 
 # ── audit events ────────────────────────────────────────────────────

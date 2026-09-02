@@ -9,6 +9,7 @@ from pyaxm.models import (
     OrgDeviceAssignedServerLinkageResponse,
     OrgDeviceActivityCreateRequest,
     OrgDeviceActivityResponse,
+    OrgDeviceActivityType,
     AppleCareCoverageResponse,
     AuditEventsResponse,
     UsersResponse,
@@ -232,18 +233,28 @@ class ABMRequests:
 
     @exponential_backoff(retries=5, backoff_factor=2)
     def assign_unassign_device_to_mdm_server(
-        self, device_ids: List[str], server_id: str, action: str, access_token: str
+        self,
+        device_ids: List[str],
+        server_id: Optional[str],
+        action: OrgDeviceActivityType,
+        access_token: str,
+        mdm_migration_deadline_date_time: Optional[str] = None,
     ) -> OrgDeviceActivityResponse:
         """
-        Assign or unassign one or more devices to/from an MDM server.
+        Create an org device activity for assignment, unassignment, migration deadline updates,
+        or migration cancellation.
 
         :param device_ids: List of device IDs.
-        :param server_id: The ID of the MDM server.
-        :param action: 'assign' or 'unassign'.
+        :param server_id: The ID of the MDM server for assign/unassign flows. Optional for
+            deadline updates and migration cancellation.
+        :param action: Apple org device activity type.
         :param access_token: The access token for authentication.
+        :param mdm_migration_deadline_date_time: ISO 8601 date-time string (e.g.,
+            "2026-03-15T17:00:00.000Z") for migration workflows. Cannot be more than
+            90 days in the future.
         """
         url = f'https://api-business.apple.com/v1/orgDeviceActivities'
-        
+
         devices_data = [
             {
                 "id": did,
@@ -252,23 +263,36 @@ class ABMRequests:
             for did in device_ids
         ]
 
-        request_data = {
-            "data": {
-            "type": "orgDeviceActivities",
-            "attributes": {
-                "activityType": action
-            },
-            "relationships": {
-                "devices": {
-                    "data": devices_data
-                },
-                "mdmServer": {
+        attributes = {"activityType": action}
+        if mdm_migration_deadline_date_time is not None:
+            attributes["activityTypeMetadata"] = {
+                "mdmMigrationDeadlineDateTime": mdm_migration_deadline_date_time
+            }
+
+        relationships = {
+            "devices": {
+                "data": devices_data
+            }
+        }
+
+        if action in {"ASSIGN_DEVICES", "UNASSIGN_DEVICES", "ASSIGN_DEVICES_WITH_MDM_MIGRATION_DEADLINE"}:
+            if not server_id:
+                raise ValueError(f"server_id is required for activity type {action}")
+            relationships["mdmServer"] = {
                 "data": {
                     "id": server_id,
                     "type": "mdmServers"
                 }
-                }
             }
+
+        if action in {"ASSIGN_DEVICES_WITH_MDM_MIGRATION_DEADLINE", "UPDATE_MDM_MIGRATION_DEADLINE"} and not mdm_migration_deadline_date_time:
+            raise ValueError(f"mdm_migration_deadline_date_time is required for activity type {action}")
+
+        request_data = {
+            "data": {
+                "type": "orgDeviceActivities",
+                "attributes": attributes,
+                "relationships": relationships,
             }
         }
 
@@ -277,7 +301,7 @@ class ABMRequests:
         response = self.session.post(
             url,
             headers=self._auth_headers(access_token),
-            json=request_data.model_dump()
+            json=request_data.model_dump(mode="json", exclude_none=True)
         )
 
         if response.status_code == HTTPStatus.CREATED:
