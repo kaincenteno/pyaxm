@@ -1,5 +1,4 @@
 import sys
-import time
 from datetime import datetime, timezone
 
 import pandas as pd
@@ -54,15 +53,15 @@ def _run_device_activity(activity, format: str):
 
     _output(info, format)
 
-    typer.echo(
-        "Waiting 10 seconds for the activity report to be ready before downloading "
-        "(this also avoids Apple API rate limiting)..."
-    )
-    time.sleep(10)
-
     file_path = download_activity_csv(activity)
-    if file_path:
-        typer.echo(f"Report downloaded successfully to: {file_path}")
+    if not file_path:
+        status = activity.attributes.status if activity.attributes else "UNKNOWN"
+        typer.echo(
+            f"No report is available for activity {activity.id} (status: {status}). "
+            "The activity may still be pending or its report is not ready yet. "
+            "Check the Apple Business Manager console for the activity results.",
+            err=True,
+        )
 
 
 # ── device commands ─────────────────────────────────────────────────
@@ -227,6 +226,17 @@ def cancel_mdm_migration(
     """Cancel an in-progress MDM migration for one or more devices."""
     client = Client()
     activity = client.assign_unassign_device_to_mdm_server(device_ids, None, "CANCEL_MDM_MIGRATION")
+    _run_device_activity(activity, format)
+
+
+@app.command()
+def release_device(
+    device_ids: Annotated[List[str], typer.Argument()],
+    format: Annotated[str, typer.Option("--format", help="Output format")] = "yaml",
+):
+    """Release one or more devices from the organization."""
+    client = Client()
+    activity = client.release_devices(device_ids)
     _run_device_activity(activity, format)
 
 

@@ -14,8 +14,9 @@ from the terminal.
 - **MDM servers** — list servers, list the devices assigned to a given server, and
   check which server a device is currently assigned to.
 - **Device assignment** — assign/unassign devices to MDM servers, including MDM
-  migration flows: assign with a migration deadline, move the deadline, or cancel an
-  in-progress migration. Calls return once the activity has finished.
+  migration flows: assign with a migration deadline, move the deadline, cancel an
+  in-progress migration, or release devices from the organization entirely. Calls
+  return once the activity has finished.
 - **Activity reports** — completed device activities expose a downloadable CSV report.
 - **Audit events** — search the audit log over a date range, with optional filters for
   actor, subject, event type, paging, and more.
@@ -93,6 +94,9 @@ client.assign_unassign_device_to_mdm_server(
     action="ASSIGN_DEVICES_WITH_MDM_MIGRATION_DEADLINE",
     mdm_migration_deadline_date_time="2026-10-15T17:00:00.000Z",
 )
+
+# Release one or more devices from the organization
+client.release_devices(device_ids=["SERIAL_NUMBER"])
 
 # Audit events (optional filters: actor_id, subject_id, event_type, limit, fields, cursor)
 events = client.get_audit_events(

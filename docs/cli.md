@@ -24,6 +24,7 @@ $ pyaxm-cli [OPTIONS] COMMAND [ARGS]...
 * `unassign-device`: Unassign one or more devices from an MDM...
 * `update-mdm-migration-deadline`: Update the MDM migration deadline for one...
 * `cancel-mdm-migration`: Cancel an in-progress MDM migration for...
+* `release-device`: Release one or more devices from the...
 * `audit-events`: Get a list of audit events.
 * `users`: List all users in the organization.
 * `user`: Get a user by ID.
@@ -203,6 +204,25 @@ Cancel an in-progress MDM migration for one or more devices.
 
 ```console
 $ pyaxm-cli cancel-mdm-migration [OPTIONS] {device_ids}...
+```
+
+**Arguments**:
+
+* `device_ids...`: [required]
+
+**Options**:
+
+* `--format <str>`: Output format  [default: yaml]
+* `--help`: Show this message and exit.
+
+## `pyaxm-cli release-device`
+
+Release one or more devices from the organization.
+
+**Usage**:
+
+```console
+$ pyaxm-cli release-device [OPTIONS] {device_ids}...
 ```
 
 **Arguments**:
