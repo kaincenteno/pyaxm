@@ -242,11 +242,12 @@ class ABMRequests:
     ) -> OrgDeviceActivityResponse:
         """
         Create an org device activity for assignment, unassignment, migration deadline updates,
-        or migration cancellation.
+        migration cancellation, or device release.
 
         :param device_ids: List of device IDs.
-        :param server_id: The ID of the MDM server for assign/unassign flows. Optional for
-            deadline updates and migration cancellation.
+        :param server_id: The ID of the MDM server for assign/unassign flows. Required for
+            ASSIGN_DEVICES, UNASSIGN_DEVICES, and ASSIGN_DEVICES_WITH_MDM_MIGRATION_DEADLINE.
+            Omit for UPDATE_MDM_MIGRATION_DEADLINE, CANCEL_MDM_MIGRATION, and RELEASE_DEVICES.
         :param action: Apple org device activity type.
         :param access_token: The access token for authentication.
         :param mdm_migration_deadline_date_time: ISO 8601 date-time string (e.g.,
