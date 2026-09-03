@@ -108,15 +108,29 @@ class Client:
     def _wait_for_device_activity_completion(
         self,
         activity_id: str,
-        backoff_factor: int = 2,
-        max_retries: int = 5,
+        initial_delay: int = 10,
+        poll_interval: int = 20,
+        max_retries: int = 15,
     ) -> OrgDeviceActivity:
-        activity_response = self.abm.get_device_activity(activity_id, self.token_manager.get_token_value())
+        """Wait for an org device activity to finish.
+
+        Waits ``initial_delay`` seconds first so short-lived activities (usually
+        ~10s) have time to complete, then performs the first status check. If it
+        is still in progress, keeps polling every ``poll_interval`` seconds until
+        it completes or ``max_retries`` polls have been made.
+        """
         retry = 0
+
+        # Initial wait before the first status check.
+        time.sleep(initial_delay)
+
+        activity_response = self.abm.get_device_activity(activity_id, self.token_manager.get_token_value())
+
         while activity_response.data.attributes.status == 'IN_PROGRESS' and retry < max_retries:
-            time.sleep(backoff_factor ** (retry + 1))
             retry += 1
+            time.sleep(poll_interval)
             activity_response = self.abm.get_device_activity(activity_id, self.token_manager.get_token_value())
+
         return activity_response.data
 
     def assign_unassign_device_to_mdm_server(
@@ -134,6 +148,14 @@ class Client:
             mdm_migration_deadline_date_time,
         )
         return self._wait_for_device_activity_completion(response.data.id)
+
+    def release_devices(self, device_ids: List[str]) -> OrgDeviceActivity:
+        """Release one or more devices from the organization.
+
+        :param device_ids: List of device IDs to release.
+        :return: The completed org device activity.
+        """
+        return self.assign_unassign_device_to_mdm_server(device_ids, None, "RELEASE_DEVICES")
 
     def list_users(self) -> List[User]:
         response = self.abm.list_users(self.token_manager.get_token_value())
